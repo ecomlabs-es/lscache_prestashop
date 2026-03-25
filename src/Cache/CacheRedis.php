@@ -33,6 +33,9 @@ class CacheRedis extends \CacheCore
     /** @var array In-memory cache for current request */
     private array $localCache = [];
 
+    /** @var array Maps tables accessed during this request */
+    private array $debugTables = [];
+
     public function __construct()
     {
         $this->connect();
@@ -115,6 +118,50 @@ class CacheRedis extends \CacheCore
         return $this->prefix . $key;
     }
 
+    public function getPrefix(): string
+    {
+        return $this->prefix;
+    }
+
+    public function getRedis(): ?\Redis
+    {
+        return $this->redis;
+    }
+
+    public function getAccessedKeys(): array
+    {
+        return array_keys($this->localCache);
+    }
+
+    public function storeDebugKeys(string $token): void
+    {
+        if (!$this->is_connected || !$this->redis) {
+            return;
+        }
+
+        arsort($this->debugTables);
+
+        $this->redis->setex(
+            '_lsc_debug_keys:' . $token,
+            30,
+            json_encode([
+                'tables' => $this->debugTables,
+                'queries' => array_sum($this->debugTables),
+            ])
+        );
+    }
+
+    public function getDebugKeys(string $token): array
+    {
+        if (!$this->is_connected || !$this->redis) {
+            return [];
+        }
+
+        $data = $this->redis->get('_lsc_debug_keys:' . $token);
+
+        return $data ? json_decode($data, true) ?: [] : [];
+    }
+
     // -------------------------------------------------------------------------
     // High-level public methods — bypass parent $keys[] index so hits persist
     // across requests (same pattern as CacheMemcached in PS core).
@@ -148,6 +195,21 @@ class CacheRedis extends \CacheCore
         }
 
         return $this->_exists($key);
+    }
+
+    public function setQuery($query, $result)
+    {
+        if (preg_match_all('/(?:FROM|JOIN|INTO|UPDATE)\s+`?(' . _DB_PREFIX_ . '\w+)`?/i', $query, $m)) {
+            foreach ($m[1] as $table) {
+                $clean = str_replace(_DB_PREFIX_, '', $table);
+                if (!isset($this->debugTables[$clean])) {
+                    $this->debugTables[$clean] = 0;
+                }
+                $this->debugTables[$clean]++;
+            }
+        }
+
+        parent::setQuery($query, $result);
     }
 
     public function delete($key)

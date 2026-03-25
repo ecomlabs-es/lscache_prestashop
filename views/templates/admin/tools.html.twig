@@ -373,7 +373,7 @@
               <label class="form-control-label col-sm-3" for="debug_ips">Restrict to IPs</label>
               <div class="col-sm-9">
                 <div class="input-group">
-                  <input type="text" class="form-control" id="debug_ips" name="debug_ips" value="{{ debugIps }}" placeholder="e.g. 192.168.1.100, 10.0.0.1">
+                  <input type="text" class="form-control" id="debug_ips" name="debug_ips" value="{{ debugIps }}" placeholder="{{ remoteAddr|default('') }}">
                   <div class="input-group-append">
                     <button type="button" class="btn btn-outline-secondary" id="btn-get-my-ip">Get my IP</button>
                   </div>
@@ -699,7 +699,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .catch(function () {
           if (statusEl) statusEl.textContent = 'Auto-refresh failed';
         });
-    }, 5000);
+    }, 15000);
   }
 });
 </script>

@@ -31,23 +31,24 @@ class WarmupConfig
     public const PROFILE_CUSTOM = 'custom';
 
     /** @var array Delay values in milliseconds */
+    /** @var array Profile presets: Low=shared (1 core/2GB), Medium=VPS (4 cores/8GB), High=dedicated */
     private static array $profiles = [
         self::PROFILE_LOW => [
             self::CONCURRENT_REQUESTS => 1,
             self::CRAWL_DELAY => 500,
             self::CRAWL_TIMEOUT => 30,
-            self::SERVER_LOAD_LIMIT => 0.5,
+            self::SERVER_LOAD_LIMIT => 0.7,
         ],
         self::PROFILE_MEDIUM => [
-            self::CONCURRENT_REQUESTS => 3,
+            self::CONCURRENT_REQUESTS => 4,
             self::CRAWL_DELAY => 100,
             self::CRAWL_TIMEOUT => 30,
-            self::SERVER_LOAD_LIMIT => 2.0,
+            self::SERVER_LOAD_LIMIT => 3.0,
         ],
         self::PROFILE_HIGH => [
-            self::CONCURRENT_REQUESTS => 8,
-            self::CRAWL_DELAY => 0,
-            self::CRAWL_TIMEOUT => 15,
+            self::CONCURRENT_REQUESTS => 10,
+            self::CRAWL_DELAY => 25,
+            self::CRAWL_TIMEOUT => 30,
             self::SERVER_LOAD_LIMIT => 0,
         ],
     ];

@@ -107,14 +107,22 @@ class CacheHookHandler
 
     public function onClearCompileCache(array $params): void
     {
-        $this->cache->purgeByCatchAllMethod('hookActionClearCompileCache', $params);
-        $this->flushExternalCaches();
+        try {
+            if (!headers_sent()) {
+                $this->cache->purgeEntireStorage('hookActionClearCompileCache');
+            }
+        } catch (\Throwable $e) {
+        }
     }
 
     public function onClearSf2Cache(array $params): void
     {
-        $this->cache->purgeByCatchAllMethod('hookActionClearSf2Cache', $params);
-        $this->flushExternalCaches();
+        try {
+            if (!headers_sent()) {
+                $this->cache->purgeEntireStorage('hookActionClearSf2Cache');
+            }
+        } catch (\Throwable $e) {
+        }
     }
 
     public function onHtaccessCreate(array $params): void

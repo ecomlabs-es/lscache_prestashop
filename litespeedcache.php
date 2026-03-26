@@ -102,7 +102,7 @@ class LiteSpeedCache extends Module
         $this->name = 'litespeedcache';
         $this->tab = 'administration';
         $this->author = 'LiteSpeedTech';
-        $this->version = '2.1.0';
+        $this->version = '2.1.1';
         $this->need_instance = 0;
         $this->module_key = '2a93f81de38cad872010f09589c279ba';
 
@@ -648,6 +648,7 @@ class LiteSpeedCache extends Module
         Configuration::deleteByName('LITESPEED_CACHE_ADVANCED');
         Configuration::deleteByName('LITESPEED_CACHE_BYPASS');
         Configuration::deleteByName('LITESPEED_ACTIVE_PRESET');
+        Configuration::deleteByName('LITESPEED_WIZARD_SNAPSHOT');
         Configuration::deleteByName('LITESPEED_PRESETS_HISTORY');
         Configuration::deleteByName('LITESPEED_WARMUP_STATE');
         Configuration::deleteByName('LITESPEED_WARMUP_BLACKLIST');

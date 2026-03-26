@@ -1,0 +1,36 @@
+{# Custom crawl profile fields — shared between Warmup and Wizard #}
+<div class="form-group row">
+  <label class="form-control-label col-sm-3" for="{{ idPrefix|default('') }}concurrent">Concurrent Requests</label>
+  <div class="col-sm-9">
+    <input type="number" class="form-control" id="{{ idPrefix|default('') }}concurrent" name="concurrent"
+      value="{{ concurrent|default(1)|e('html_attr') }}" min="1" max="10" style="max-width:120px;">
+    <small class="form-text text-muted">Number of URLs to crawl in parallel (1-10). Higher = faster but more server load.</small>
+  </div>
+</div>
+
+<div class="form-group row">
+  <label class="form-control-label col-sm-3" for="{{ idPrefix|default('') }}crawl_delay">Crawl Delay (ms)</label>
+  <div class="col-sm-9">
+    <input type="number" class="form-control" id="{{ idPrefix|default('') }}crawl_delay" name="crawl_delay"
+      value="{{ crawl_delay|default(500)|e('html_attr') }}" min="0" max="10000" step="50" style="max-width:160px;">
+    <small class="form-text text-muted">Pause between each batch of requests in milliseconds. 500 = half second. 0 = no delay.</small>
+  </div>
+</div>
+
+<div class="form-group row">
+  <label class="form-control-label col-sm-3" for="{{ idPrefix|default('') }}crawl_timeout">Timeout per URL (seconds)</label>
+  <div class="col-sm-9">
+    <input type="number" class="form-control" id="{{ idPrefix|default('') }}crawl_timeout" name="crawl_timeout"
+      value="{{ crawl_timeout|default(30)|e('html_attr') }}" min="5" max="120" style="max-width:120px;">
+    <small class="form-text text-muted">Maximum wait time per URL before skipping (5-120).</small>
+  </div>
+</div>
+
+<div class="form-group row">
+  <label class="form-control-label col-sm-3" for="{{ idPrefix|default('') }}load_limit">Server Load Limit</label>
+  <div class="col-sm-9">
+    <input type="number" class="form-control" id="{{ idPrefix|default('') }}load_limit" name="load_limit"
+      value="{{ load_limit|default(1)|e('html_attr') }}" min="0" max="100" step="0.5" style="max-width:120px;">
+    <small class="form-text text-muted">Stop crawling when server 1-min load average exceeds this value. Recommended: 0.5 per CPU core. 0 = no limit.</small>
+  </div>
+</div>

@@ -51,7 +51,7 @@
             </label>
             <div class="col-sm-9">
               <input type="email" class="form-control" id="cf_email" name="cf_email"
-                value="{{ values.cf_email|default('') }}">
+                value="{{ values.cf_email|default('')|e('html_attr') }}">
               <small class="form-text text-muted">
                 Your Cloudflare account email address. Optional when using an API token.
               </small>
@@ -65,7 +65,7 @@
             </label>
             <div class="col-sm-9">
               <input type="password" class="form-control" id="cf_key" name="cf_key"
-                value="{{ values.cf_key|default('') }}"
+                value="{{ values.cf_key|default('')|e('html_attr') }}"
                 autocomplete="new-password">
               <small class="form-text text-muted">
                 Your API key or token is used to access the Cloudflare APIs.
@@ -81,7 +81,7 @@
             </label>
             <div class="col-sm-9">
               <input type="text" class="form-control" id="cf_domain" name="cf_domain"
-                value="{{ values.cf_domain|default('') }}"
+                value="{{ values.cf_domain|default('')|e('html_attr') }}"
                 placeholder="example.com">
               <small class="form-text text-muted">
                 You can type part of the domain. Once saved, it will match against your zone list and be filled in automatically.
@@ -127,9 +127,9 @@
       <div class="card-header d-flex align-items-center justify-content-between">
         <h3 class="card-header-title mb-0">Cloudflare</h3>
         <span class="d-flex align-items-center">
-          <small class="text-muted mr-1">Domain:</small><span class="badge badge-success mr-2">{{ cfInfo.zone }}</span>
+          <small class="text-muted mr-1">Domain:</small><span class="badge badge-success mr-2">{{ cfInfo.zone|e }}</span>
           <small class="text-muted mr-1">Zone ID:</small>
-          <span class="badge badge-secondary js-copy-text" style="cursor:pointer;" data-text="{{ values.cf_zone_id }}" title="Click to copy Zone ID">{{ values.cf_zone_id }}</span>
+          <span class="badge badge-secondary js-copy-text" style="cursor:pointer;" data-text="{{ values.cf_zone_id|e('html_attr') }}" title="Click to copy Zone ID">{{ values.cf_zone_id|e }}</span>
         </span>
       </div>
       <div class="card-body">
@@ -151,7 +151,7 @@
                 {% endif %}
               </form>
               <small class="form-text text-muted">
-                {{ cfProxy.type }} → {{ cfProxy.ip }} — {{ cfProxy.proxied ? 'proxied through Cloudflare' : 'DNS only, not proxied' }}
+                {{ cfProxy.type|e }} → {{ cfProxy.ip|e }} — {{ cfProxy.proxied ? 'proxied through Cloudflare' : 'DNS only, not proxied' }}
               </small>
               {% else %}
               <small class="text-muted">No A/AAAA record found</small>
@@ -262,10 +262,10 @@
       <div class="modal-body">
         {% if cfProxy is defined and cfProxy %}
           {% if cfProxy.proxied %}
-            <p>Disable Cloudflare proxy for <strong>{{ cfInfo.domain }}</strong>?</p>
+            <p>Disable Cloudflare proxy for <strong>{{ cfInfo.domain|e }}</strong>?</p>
             <p class="text-muted">Traffic will go directly to your server (DNS only). Cloudflare CDN, WAF and DDoS protection will be disabled.</p>
           {% else %}
-            <p>Enable Cloudflare proxy for <strong>{{ cfInfo.domain }}</strong>?</p>
+            <p>Enable Cloudflare proxy for <strong>{{ cfInfo.domain|e }}</strong>?</p>
             <p class="text-muted">Traffic will be routed through Cloudflare. CDN, WAF and DDoS protection will be active.</p>
           {% endif %}
         {% endif %}
@@ -432,10 +432,10 @@
       </div>
       <div class="modal-body">
         {% if cfInfo is defined and cfInfo.dev_mode == 'on' %}
-          <p>Disable Development Mode for <strong>{{ cfInfo.domain }}</strong>?</p>
+          <p>Disable Development Mode for <strong>{{ cfInfo.domain|e }}</strong>?</p>
           <p class="text-muted">Cloudflare cache will resume normal operation.</p>
         {% else %}
-          <p>Enable Development Mode for <strong>{{ cfInfo.domain }}</strong>?</p>
+          <p>Enable Development Mode for <strong>{{ cfInfo.domain|e }}</strong>?</p>
           <p class="text-muted">Cloudflare cache will be bypassed for 3 hours. All requests will go directly to your origin server.</p>
         {% endif %}
       </div>
@@ -462,7 +462,7 @@
         <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
       </div>
       <div class="modal-body">
-        <p>Purge all cached content from Cloudflare for <strong>{{ cfInfo.domain }}</strong>?</p>
+        <p>Purge all cached content from Cloudflare for <strong>{{ cfInfo.domain|e }}</strong>?</p>
         <p class="text-muted">All cached files will be removed from Cloudflare's edge servers. New requests will be fetched from your origin server.</p>
       </div>
       <div class="modal-footer">
@@ -500,9 +500,9 @@
           <tbody>
             {% for key, item in cfPendingSettings %}
             <tr>
-              <td>{{ item.label }}</td>
-              <td><span class="badge badge-warning">{{ item.current }}</span></td>
-              <td><span class="badge badge-success">{{ item.target }}</span></td>
+              <td>{{ item.label|e }}</td>
+              <td><span class="badge badge-warning">{{ item.current|e }}</span></td>
+              <td><span class="badge badge-success">{{ item.target|e }}</span></td>
             </tr>
             {% endfor %}
             <tr>

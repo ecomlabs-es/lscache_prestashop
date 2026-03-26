@@ -23,6 +23,9 @@ class ManageController extends FrameworkBundleAdminController
 {
     use NavPillsTrait;
 
+    /** @var bool Flag set by doPurge() when a full purge header is needed */
+    private $pendingPurgeAll = false;
+
     public function indexAction(Request $request): Response
     {
         if (\Shop::isFeatureActive()) {
@@ -43,14 +46,15 @@ class ManageController extends FrameworkBundleAdminController
                 $this->addFlash('success', $this->trans('Notified LiteSpeed Server to flush all pages of this PrestaShop.', 'Modules.Litespeedcache.Admin'));
             }
             $referer = $request->headers->get('referer');
+            $response = $referer ? $this->redirect($referer) : $this->redirectToRoute('admin_litespeedcache_manage');
 
-            return $referer ? $this->redirect($referer) : $this->redirectToRoute('admin_litespeedcache_manage');
+            return $this->applyPurgeHeader($response);
         } elseif ($request->query->has('purge_all')) {
             if ($this->doPurge(1, 'ALL')) {
                 $this->addFlash('success', $this->trans('Notified LiteSpeed Server to flush the entire cache storage.', 'Modules.Litespeedcache.Admin'));
             }
 
-            return $this->redirectToRoute('admin_litespeedcache_manage');
+            return $this->applyPurgeHeader($this->redirectToRoute('admin_litespeedcache_manage'));
         } elseif ($request->isMethod('POST') && $request->request->has('submitPurgeSelection')) {
             $this->handlePurgeSelection($request);
 
@@ -175,10 +179,9 @@ class ManageController extends FrameworkBundleAdminController
     {
         if (CacheState::isActive() || $tags === '*') {
             \Hook::exec('litespeedCachePurge', ['from' => 'AdminLiteSpeedCacheManage', $key => $tags]);
-            // Send purge header directly for admin requests where the
-            // output buffer callback may not run.
-            if (!headers_sent() && $tags === '*') {
-                header('X-LiteSpeed-Purge: *');
+            // Flag that a full purge header must be set on the Response.
+            if ($tags === '*') {
+                $this->pendingPurgeAll = true;
             }
 
             return true;
@@ -186,5 +189,14 @@ class ManageController extends FrameworkBundleAdminController
         $this->addFlash('warning', $this->trans('No action taken. This Module is not enabled. Only action allowed is Flush All Prestashop Pages.', 'Modules.Litespeedcache.Admin'));
 
         return false;
+    }
+
+    private function applyPurgeHeader(Response $response): Response
+    {
+        if ($this->pendingPurgeAll) {
+            $response->headers->set('X-LiteSpeed-Purge', '*');
+        }
+
+        return $response;
     }
 }

@@ -6,6 +6,12 @@
 
     <form method="post" autocomplete="off">
 
+      {% if disabled %}
+      <div class="alert alert-info">
+        Global settings are read-only in single shop context. Switch to <strong style="padding:0">All shops</strong> to modify them.
+      </div>
+      {% endif %}
+
       {# ================================================================== #}
       {# Cache Control Settings                                              #}
       {# ================================================================== #}
@@ -20,8 +26,8 @@
             <label class="form-control-label col-sm-3">Enable Cache</label>
             <div class="col-sm-9">
               <div class="custom-control custom-switch">
-                <input type="hidden" name="enable" value="0">
-                <input type="checkbox" class="custom-control-input" id="enable" name="enable" value="1" {{ values.enable ? 'checked' : '' }}>
+                <input type="hidden" name="enable" value="0" {{ disabled ? 'disabled' : '' }}>
+                <input type="checkbox" class="custom-control-input" id="enable" name="enable" value="1" {{ values.enable ? 'checked' : '' }} {{ disabled ? 'disabled' : '' }}>
                 <label class="custom-control-label" for="enable">Activate LiteSpeed Cache for this site</label>
               </div>
               <small class="form-text text-muted">Disabling the cache will purge all cached entries for this site.</small>
@@ -46,8 +52,8 @@
             <label class="form-control-label col-sm-3">Separate Mobile Cache</label>
             <div class="col-sm-9">
               <div class="custom-control custom-switch">
-                <input type="hidden" name="diff_mobile" value="0">
-                <input type="checkbox" class="custom-control-input" id="diff_mobile" name="diff_mobile" value="1" {{ values.diff_mobile ? 'checked' : '' }}>
+                <input type="hidden" name="diff_mobile" value="0" {{ disabled ? 'disabled' : '' }}>
+                <input type="checkbox" class="custom-control-input" id="diff_mobile" name="diff_mobile" value="1" {{ values.diff_mobile ? 'checked' : '' }} {{ disabled ? 'disabled' : '' }}>
                 <label class="custom-control-label" for="diff_mobile">Serve a separate cache copy for mobile visitors</label>
               </div>
               <small class="form-text text-muted">Enable if you have a separate mobile theme.</small>
@@ -85,8 +91,8 @@
             <label class="form-control-label col-sm-3">Flush All on Cache Clear</label>
             <div class="col-sm-9">
               <div class="custom-control custom-switch">
-                <input type="hidden" name="flush_all" value="0">
-                <input type="checkbox" class="custom-control-input" id="flush_all" name="flush_all" value="1" {{ values.flush_all ? 'checked' : '' }}>
+                <input type="hidden" name="flush_all" value="0" {{ disabled ? 'disabled' : '' }}>
+                <input type="checkbox" class="custom-control-input" id="flush_all" name="flush_all" value="1" {{ values.flush_all ? 'checked' : '' }} {{ disabled ? 'disabled' : '' }}>
                 <label class="custom-control-label" for="flush_all">Flush all pages when PrestaShop cache is cleared</label>
               </div>
             </div>
@@ -187,7 +193,7 @@
                 </label>
               </div>
               {% endfor %}
-              <input type="hidden" id="vary_bypass" name="vary_bypass" value="{{ values.vary_bypass|default('') }}">
+              <input type="hidden" id="vary_bypass" name="vary_bypass" value="{{ values.vary_bypass|default('') }}" {{ disabled ? 'disabled' : '' }}>
               <small class="form-text text-muted">
                 Create separate cache variants per context. Checked items are auto-detected from your store configuration.
               </small>

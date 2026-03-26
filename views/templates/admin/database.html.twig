@@ -12,15 +12,15 @@
           {% for item in cleanupItems %}
           <div class="col-lg-3 col-md-4 col-sm-6 p-2">
             <form method="post">
-              <input type="hidden" name="cleanup_action" value="{{ item.key }}">
-              <button type="{{ item.count > 0 ? 'submit' : 'button' }}" class="btn btn-block text-left p-0 border-0" style="background:none;" {{ item.count > 0 ? 'onclick=return confirm(\'' ~ item.title ~ ': Are you sure?\');' : 'disabled' }}>
+              <input type="hidden" name="cleanup_action" value="{{ item.key|e('html_attr') }}">
+              <button type="{{ item.count > 0 ? 'submit' : 'button' }}" class="btn btn-block text-left p-0 border-0" style="background:none;" {{ item.count > 0 ? 'onclick=return confirm(\'' ~ item.title|e('js') ~ ': Are you sure?\');' : 'disabled' }}>
                 <div class="d-flex align-items-start p-3 rounded h-100 w-100" style="background:#f8f9fa; border:1px solid #dee2e6; min-height:90px; position:relative;">
-                  <i class="material-icons mr-3" style="font-size:40px; color:#adb5bd;">{{ item.icon }}</i>
+                  <i class="material-icons mr-3" style="font-size:40px; color:#adb5bd;">{{ item.icon|e }}</i>
                   <div class="flex-grow-1">
                     <div style="font-weight:600; color:#343a40; font-size:14px;">
-                      {{ item.title }} <span style="color:{{ item.count > 0 ? '#e84e6a' : '#70b580' }};">({{ item.count }})</span>
+                      {{ item.title|e }} <span style="color:{{ item.count > 0 ? '#e84e6a' : '#70b580' }};">({{ item.count|e }})</span>
                     </div>
-                    <div style="color:#6c757d; font-size:12px; line-height:1.4; margin-top:2px;">{{ item.desc }}</div>
+                    <div style="color:#6c757d; font-size:12px; line-height:1.4; margin-top:2px;">{{ item.desc|e }}</div>
                   </div>
                   <span style="position:absolute; top:10px; right:10px;">
                     {% if item.count > 0 %}
@@ -67,8 +67,8 @@
                     {label: 'Database', value: summary.db_name},
                   ] %}
                   <tr>
-                    <td class="text-muted" style="font-weight:600; border-color:#e9ecef;">{{ info.label }}</td>
-                    <td style="border-color:#e9ecef;"><strong>{{ info.value }}</strong></td>
+                    <td class="text-muted" style="font-weight:600; border-color:#e9ecef;">{{ info.label|e }}</td>
+                    <td style="border-color:#e9ecef;"><strong>{{ info.value|e }}</strong></td>
                   </tr>
                   {% endfor %}
                 </tbody>
@@ -88,9 +88,9 @@
           {% for kpi in kpis %}
           <div class="col mb-3">
             <div class="p-3 rounded text-center h-100" style="background:#f8f9fa; border:1px solid #e9ecef;">
-              <i class="material-icons mb-1" style="color:#adb5bd; font-size:22px;">{{ kpi.icon }}</i>
-              <div style="font-size:22px; font-weight:700; color:#343a40;">{{ kpi.value }}</div>
-              <small class="text-muted">{{ kpi.label }}</small>
+              <i class="material-icons mb-1" style="color:#adb5bd; font-size:22px;">{{ kpi.icon|e }}</i>
+              <div style="font-size:22px; font-weight:700; color:#343a40;">{{ kpi.value|e }}</div>
+              <small class="text-muted">{{ kpi.label|e }}</small>
             </div>
           </div>
           {% endfor %}
@@ -112,17 +112,17 @@
               {% for t in summary.top_tables %}
               <tr>
                 <td>{{ loop.index }}</td>
-                <td><code>{{ t.table_name }}</code></td>
-                <td><span class="badge badge-{{ t.engine|lower == 'innodb' ? 'success' : 'warning' }}">{{ t.engine }}</span></td>
+                <td><code>{{ t.table_name|e }}</code></td>
+                <td><span class="badge badge-{{ t.engine|lower == 'innodb' ? 'success' : 'warning' }}">{{ t.engine|e }}</span></td>
                 <td>{{ t.row_count|number_format }}</td>
-                <td>{{ t.size_mb }}</td>
+                <td>{{ t.size_mb|e }}</td>
                 <td>
                   {% set pct = summary.total_size > 0 ? (t.size_mb / summary.total_size * 100)|round(1) : 0 %}
                   <div class="d-flex align-items-center">
                     <div class="progress flex-grow-1 mr-2" style="height:6px;">
-                      <div class="progress-bar bg-info" style="width:{{ pct }}%;"></div>
+                      <div class="progress-bar bg-info" style="width:{{ pct|e('html_attr') }}%;"></div>
                     </div>
-                    <small class="text-muted" style="min-width:40px;">{{ pct }}%</small>
+                    <small class="text-muted" style="min-width:40px;">{{ pct|e }}%</small>
                   </div>
                 </td>
               </tr>
@@ -139,7 +139,7 @@
       <div class="card-header d-flex justify-content-between align-items-center">
         <h3 class="card-header-title mb-0">Table Engine Converter</h3>
         {% if nonInnodbCount > 0 %}
-          <span class="badge badge-warning">{{ nonInnodbCount }} non-InnoDB tables</span>
+          <span class="badge badge-warning">{{ nonInnodbCount|e }} non-InnoDB tables</span>
         {% else %}
           <span class="badge badge-success">Optimized</span>
         {% endif %}
@@ -166,15 +166,15 @@
               {% set idx = idx + 1 %}
               <tr>
                 <td>{{ idx }}</td>
-                <td><code>{{ t.table_name }}</code></td>
-                <td><span class="badge badge-warning">{{ t.engine }}</span></td>
-                <td>{{ t.row_count }}</td>
-                <td>{{ t.data_mb }}</td>
-                <td>{{ t.index_mb }}</td>
+                <td><code>{{ t.table_name|e }}</code></td>
+                <td><span class="badge badge-warning">{{ t.engine|e }}</span></td>
+                <td>{{ t.row_count|e }}</td>
+                <td>{{ t.data_mb|e }}</td>
+                <td>{{ t.index_mb|e }}</td>
                 <td>
                   <form method="post" class="d-inline">
-                    <input type="hidden" name="convert_table" value="{{ t.table_name }}">
-                    <button type="submit" class="btn btn-sm btn-outline-primary" onclick="return confirm('Convert {{ t.table_name }} to InnoDB?');">Convert to InnoDB</button>
+                    <input type="hidden" name="convert_table" value="{{ t.table_name|e('html_attr') }}">
+                    <button type="submit" class="btn btn-sm btn-outline-primary" onclick="return confirm('Convert {{ t.table_name|e('js') }} to InnoDB?');">Convert to InnoDB</button>
                   </form>
                 </td>
               </tr>

@@ -38,7 +38,7 @@
           </div>
           <div class="col-sm-4">
             <p class="h2 mb-1 font-weight-bold">
-              {{ lsStats.last_purge ?? '—' }}
+              {{ lsStats.last_purge is defined and lsStats.last_purge ? lsStats.last_purge|e : '—' }}
             </p>
             <p class="text-muted mb-0">Last purge</p>
           </div>
@@ -59,10 +59,10 @@
       <div class="card-header d-flex align-items-center justify-content-between">
         <h3 class="card-header-title">
           <i class="material-icons">storage</i>
-          Redis Object Cache{% if redisStats %} <small class="text-muted font-weight-normal">{{ redisStats.version }}</small>{% endif %}
+          Redis Object Cache{% if redisStats %} <small class="text-muted font-weight-normal">{{ redisStats.version|e }}</small>{% endif %}
         </h3>
         {% if redisStats %}
-          <span class="badge badge-success">Since {{ redisStats.uptime_human }}</span>
+          <span class="badge badge-success">Since {{ redisStats.uptime_human|e }}</span>
         {% else %}
           <span class="badge badge-danger">Unreachable</span>
         {% endif %}
@@ -81,7 +81,7 @@
                   <canvas id="hitRateChart"></canvas>
                 </div>
                 <div class="text-center mt-2">
-                  <strong>Hit Rate: {{ redisStats.ratio }}%</strong>
+                  <strong>Hit Rate: {{ redisStats.ratio|e }}%</strong>
                 </div>
               </div>
             </div>
@@ -92,7 +92,7 @@
                 <div class="card h-100">
                   <div class="card-header"><small class="font-weight-bold">Started at</small></div>
                   <div class="card-body text-center py-3">
-                    <h3 class="mb-0" style="font-size:1rem;">{{ redisStats.uptime }}</h3>
+                    <h3 class="mb-0" style="font-size:1rem;">{{ redisStats.uptime|e }}</h3>
                   </div>
                 </div>
               </div>
@@ -100,7 +100,7 @@
                 <div class="card h-100">
                   <div class="card-header"><small class="font-weight-bold">Used Memory</small></div>
                   <div class="card-body text-center py-3">
-                    <h3 class="mb-0">{{ redisStats.memory }}</h3>
+                    <h3 class="mb-0">{{ redisStats.memory|e }}</h3>
                   </div>
                 </div>
               </div>
@@ -116,7 +116,7 @@
                 <div class="card h-100">
                   <div class="card-header"><small class="font-weight-bold">Memory Fragmentation</small></div>
                   <div class="card-body text-center py-3">
-                    <h3 class="mb-0">{{ redisStats.fragmentation }}</h3>
+                    <h3 class="mb-0">{{ redisStats.fragmentation|e }}</h3>
                     <p class="text-muted small mb-0">Ratio &gt; 1.0 fragmentation. &lt; 1.0 swapping.</p>
                   </div>
                 </div>
@@ -145,7 +145,7 @@
           Cloudflare Cache
         </h3>
         {% if cfStats %}
-          <span class="badge badge-success">Last {{ cfStats.period_hours }}h</span>
+          <span class="badge badge-success">Last {{ cfStats.period_hours|e }}h</span>
         {% else %}
           <span class="badge badge-warning">API unavailable</span>
         {% endif %}
@@ -161,7 +161,7 @@
                   <canvas id="cfHitRateChart"></canvas>
                 </div>
                 <div class="text-center mt-2">
-                  <strong>Hit Rate: {{ cfStats.req_ratio }}%</strong>
+                  <strong>Hit Rate: {{ cfStats.req_ratio|e }}%</strong>
                 </div>
               </div>
             </div>
@@ -188,8 +188,8 @@
                 <div class="card h-100">
                   <div class="card-header"><small class="font-weight-bold">Bandwidth Saved</small></div>
                   <div class="card-body text-center py-3">
-                    <h3 class="mb-0">{{ cfStats.bw_cached_mb }} MB</h3>
-                    <p class="text-muted small mb-0">of {{ cfStats.bw_total_mb }} MB total</p>
+                    <h3 class="mb-0">{{ cfStats.bw_cached_mb|e }} MB</h3>
+                    <p class="text-muted small mb-0">of {{ cfStats.bw_total_mb|e }} MB total</p>
                   </div>
                 </div>
               </div>
@@ -198,7 +198,7 @@
                   <div class="card-header"><small class="font-weight-bold">Hit Ratio</small></div>
                   <div class="card-body text-center py-3">
                     <h3 class="mb-0 {% if cfStats.req_ratio >= 80 %}text-success{% elseif cfStats.req_ratio >= 50 %}text-warning{% else %}text-danger{% endif %}">
-                      {{ cfStats.req_ratio }}%
+                      {{ cfStats.req_ratio|e }}%
                     </h3>
                   </div>
                 </div>
@@ -208,7 +208,7 @@
         </div>
         {% else %}
         <p class="text-muted">Could not retrieve Cloudflare analytics.</p>
-        {% if cfError %}<p class="text-danger small"><code>{{ cfError }}</code></p>{% endif %}
+        {% if cfError %}<p class="text-danger small"><code>{{ cfError|e }}</code></p>{% endif %}
         {% endif %}
       </div>
     </div>
@@ -274,8 +274,8 @@ document.addEventListener('DOMContentLoaded', function () {
 <script>
 document.addEventListener('DOMContentLoaded', function () {
   var ctx    = document.getElementById('cfHitRateChart').getContext('2d');
-  var hits   = {{ cfStats.req_cached }};
-  var misses = {{ cfStats.req_total - cfStats.req_cached }};
+  var hits   = {{ cfStats.req_cached|e('js') }};
+  var misses = {{ (cfStats.req_total - cfStats.req_cached)|e('js') }};
   var total  = hits + misses;
 
   var chartData = {

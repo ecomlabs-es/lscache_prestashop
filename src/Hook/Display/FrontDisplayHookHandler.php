@@ -257,9 +257,7 @@ class FrontDisplayHookHandler
             return true;
         }
 
-        $remoteIp = $_SERVER['REMOTE_ADDR'] ?? '';
-
-        return in_array($remoteIp, $ips, true);
+        return in_array(\Tools::getRemoteAddr(), $ips, true);
     }
 
     private function formatHeaderValue(string $name, string $value): string

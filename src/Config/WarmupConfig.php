@@ -35,21 +35,21 @@ class WarmupConfig
     private static array $profiles = [
         self::PROFILE_LOW => [
             self::CONCURRENT_REQUESTS => 1,
-            self::CRAWL_DELAY => 500,
-            self::CRAWL_TIMEOUT => 30,
-            self::SERVER_LOAD_LIMIT => 0.7,
+            self::CRAWL_DELAY => 1000,
+            self::CRAWL_TIMEOUT => 20,
+            self::SERVER_LOAD_LIMIT => 1,
         ],
         self::PROFILE_MEDIUM => [
-            self::CONCURRENT_REQUESTS => 4,
-            self::CRAWL_DELAY => 100,
-            self::CRAWL_TIMEOUT => 30,
-            self::SERVER_LOAD_LIMIT => 3.0,
+            self::CONCURRENT_REQUESTS => 2,
+            self::CRAWL_DELAY => 500,
+            self::CRAWL_TIMEOUT => 20,
+            self::SERVER_LOAD_LIMIT => 2,
         ],
         self::PROFILE_HIGH => [
-            self::CONCURRENT_REQUESTS => 10,
-            self::CRAWL_DELAY => 25,
-            self::CRAWL_TIMEOUT => 30,
-            self::SERVER_LOAD_LIMIT => 0,
+            self::CONCURRENT_REQUESTS => 4,
+            self::CRAWL_DELAY => 200,
+            self::CRAWL_TIMEOUT => 15,
+            self::SERVER_LOAD_LIMIT => 4,
         ],
     ];
 
@@ -92,10 +92,10 @@ class WarmupConfig
     {
         return [
             self::PROFILE => self::PROFILE_MEDIUM,
-            self::CRAWL_DELAY => 100,
-            self::CONCURRENT_REQUESTS => 3,
-            self::CRAWL_TIMEOUT => 30,
-            self::SERVER_LOAD_LIMIT => 2.0,
+            self::CRAWL_DELAY => 500,
+            self::CONCURRENT_REQUESTS => 2,
+            self::CRAWL_TIMEOUT => 20,
+            self::SERVER_LOAD_LIMIT => 2,
             self::MOBILE_CRAWL => 0,
             self::MOBILE_USER_AGENT => 'lscache_runner Mobile Safari/537.36 iPhone',
         ];

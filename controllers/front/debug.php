@@ -45,7 +45,7 @@ class LiteSpeedCacheDebugModuleFrontController extends ModuleFrontController
 
         // Check IP
         $ips = $config->getArray(CacheConfig::CFG_DEBUG_IPS);
-        if (!empty($ips) && !in_array($_SERVER['REMOTE_ADDR'] ?? '', $ips, true)) {
+        if (!empty($ips) && !in_array(\Tools::getRemoteAddr(), $ips, true)) {
             $this->ajaxResponse(['error' => 'IP not allowed']);
 
             return;

@@ -9,31 +9,31 @@
     <div class="card mb-4">
       <div class="card-header d-flex align-items-center justify-content-between">
         <h3 class="card-header-title mb-0">Last Crawl</h3>
-        <small class="text-muted">{{ lastState.date }}</small>
+        <small class="text-muted">{{ lastState.date|e }}</small>
       </div>
       <div class="card-body">
         <div class="row text-center mb-3">
           <div class="col-md-3">
             <div class="p-3 rounded" style="background:#f8f9fa; border:1px solid #e9ecef;">
-              <div style="font-size:22px; font-weight:700; color:#343a40;">{{ lastState.total|default(0) }}</div>
+              <div style="font-size:22px; font-weight:700; color:#343a40;">{{ lastState.total|default(0)|e }}</div>
               <small class="text-muted">Total URLs</small>
             </div>
           </div>
           <div class="col-md-3">
             <div class="p-3 rounded" style="background:#f8f9fa; border:1px solid #e9ecef;">
-              <div style="font-size:22px; font-weight:700; color:#70b580;">{{ lastState.success|default(0) }}</div>
+              <div style="font-size:22px; font-weight:700; color:#70b580;">{{ lastState.success|default(0)|e }}</div>
               <small class="text-muted">Success</small>
             </div>
           </div>
           <div class="col-md-3">
             <div class="p-3 rounded" style="background:#f8f9fa; border:1px solid #e9ecef;">
-              <div style="font-size:22px; font-weight:700; color:#e84e6a;">{{ lastState.fail|default(0) }}</div>
+              <div style="font-size:22px; font-weight:700; color:#e84e6a;">{{ lastState.fail|default(0)|e }}</div>
               <small class="text-muted">Failed</small>
             </div>
           </div>
           <div class="col-md-3">
             <div class="p-3 rounded" style="background:#f8f9fa; border:1px solid #e9ecef;">
-              <div style="font-size:22px; font-weight:700; color:#343a40;">{{ lastState.duration|default(0) }}s</div>
+              <div style="font-size:22px; font-weight:700; color:#343a40;">{{ lastState.duration|default(0)|e }}s</div>
               <small class="text-muted">Duration</small>
             </div>
           </div>
@@ -52,7 +52,7 @@
               {% for item in lastState.urls %}
               <tr>
                 <td>{{ loop.index }}</td>
-                <td><small><a href="{{ item.url }}" target="_blank" rel="noopener">{{ item.url|length > 80 ? item.url|slice(0, 80) ~ '...' : item.url }}</a></small></td>
+                <td><small><a href="{{ item.url|e('html_attr') }}" target="_blank" rel="noopener">{{ item.url|length > 80 ? item.url|slice(0, 80)|e ~ '...' : item.url|e }}</a></small></td>
                 <td>
                   {% if item.blacklisted is defined and item.blacklisted %}
                     <span class="badge badge-danger">Blacklisted</span>
@@ -61,7 +61,7 @@
                   {% elseif item.success is defined and item.success %}
                     <span class="badge badge-info">Crawled</span>
                   {% elseif item.httpCode is defined and item.httpCode > 0 %}
-                    <span class="badge badge-warning">Failed {{ item.httpCode }}</span>
+                    <span class="badge badge-warning">Failed {{ item.httpCode|e }}</span>
                   {% else %}
                     <span class="badge badge-secondary">Pending</span>
                   {% endif %}
@@ -70,7 +70,7 @@
                   {% if not (item.blacklisted is defined and item.blacklisted) %}
                   <form method="post" class="d-inline">
                     <input type="hidden" name="blacklist_add" value="1">
-                    <input type="hidden" name="blacklist_url" value="{{ item.url }}">
+                    <input type="hidden" name="blacklist_url" value="{{ item.url|e('html_attr') }}">
                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Add to blacklist" style="padding:2px 6px;">
                       <i class="material-icons" style="font-size:14px;">block</i>
                     </button>
@@ -115,7 +115,7 @@
             </label>
             <div class="col-sm-9">
               <input type="url" class="form-control" id="sitemap_url" name="sitemap_url"
-                value="{{ sitemapUrl }}"
+                value="{{ sitemapUrl|e('html_attr') }}"
                 placeholder="https://example.com/sitemap.xml" required>
             </div>
           </div>
@@ -126,7 +126,7 @@
             </label>
             <div class="col-sm-9">
               <input type="url" class="form-control" id="shop_url" name="shop_url"
-                value="{{ shopUrl }}"
+                value="{{ shopUrl|e('html_attr') }}"
                 placeholder="https://example.com">
               <small class="form-text text-muted">Auto-detected if empty.</small>
             </div>
@@ -138,7 +138,7 @@
             </label>
             <div class="col-sm-9">
               <input type="text" class="form-control" id="useragent" name="useragent"
-                value="{{ userAgent }}"
+                value="{{ userAgent|e('html_attr') }}"
                 placeholder="e.g. mobile">
             </div>
           </div>
@@ -152,15 +152,15 @@
               <div class="d-flex flex-wrap" style="gap:8px;" id="profile-selector">
                 {% set currentProfile = warmupSettings.profile|default('medium') %}
                 {% set profileLabels = {
-                  'low': {'name': 'Low', 'desc': '1 request · 500ms delay'},
-                  'medium': {'name': 'Medium', 'desc': '3 requests · 100ms delay'},
-                  'high': {'name': 'High', 'desc': '8 requests · no delay'}
+                  'low': {'name': 'Low', 'desc': '1 req · 1000ms delay'},
+                  'medium': {'name': 'Medium', 'desc': '2 req · 500ms delay'},
+                  'high': {'name': 'High', 'desc': '4 req · 200ms delay'}
                 } %}
                 {% for key, label in profileLabels %}
                 <label class="btn {{ currentProfile == key ? 'btn-primary' : 'btn-outline-secondary' }}" style="min-width:120px; cursor:pointer;">
-                  <input type="radio" name="profile" value="{{ key }}" {{ currentProfile == key ? 'checked' : '' }} style="display:none;">
-                  <div style="font-weight:600;">{{ label.name }}</div>
-                  <small style="font-size:11px; opacity:0.8;">{{ label.desc }}</small>
+                  <input type="radio" name="profile" value="{{ key|e('html_attr') }}" {{ currentProfile == key ? 'checked' : '' }} style="display:none;">
+                  <div style="font-weight:600;">{{ label.name|e }}</div>
+                  <small style="font-size:11px; opacity:0.8;">{{ label.desc|e }}</small>
                 </label>
                 {% endfor %}
                 <label class="btn {{ currentProfile == 'custom' ? 'btn-primary' : 'btn-outline-secondary' }}" style="min-width:100px; cursor:pointer;">
@@ -170,49 +170,20 @@
                 </label>
               </div>
               <small class="form-text text-muted mt-2">
-                <strong>Low:</strong> 1 request at a time, 500ms pause between requests, stops at load 0.5 — ideal for shared hosting.<br>
-                <strong>Medium:</strong> 3 concurrent requests, 100ms pause, stops at load 2 — good for VPS/dedicated.<br>
-                <strong>High:</strong> 8 concurrent requests, no pause, no load limit — for powerful servers only.
+                <strong>Low:</strong> 1 concurrent, 1000ms delay, timeout 20s, load limit 1 — shared hosting.<br>
+                <strong>Medium:</strong> 2 concurrent, 500ms delay, timeout 20s, load limit 2 — VPS.<br>
+                <strong>High:</strong> 4 concurrent, 200ms delay, timeout 15s, load limit 4 — dedicated server.
               </small>
             </div>
           </div>
 
           <div id="custom-fields" style="{{ currentProfile == 'custom' ? '' : 'display:none;' }}">
-            <div class="form-group row">
-              <label class="form-control-label col-sm-3" for="concurrent">Concurrent Requests</label>
-              <div class="col-sm-9">
-                <input type="number" class="form-control" id="concurrent" name="concurrent"
-                  value="{{ warmupSettings.concurrent }}" min="1" max="10" style="max-width:120px;">
-                <small class="form-text text-muted">Number of URLs to crawl in parallel (1-10). Higher = faster but more server load.</small>
-              </div>
-            </div>
-
-            <div class="form-group row">
-              <label class="form-control-label col-sm-3" for="crawl_delay">Crawl Delay (ms)</label>
-              <div class="col-sm-9">
-                <input type="number" class="form-control" id="crawl_delay" name="crawl_delay"
-                  value="{{ warmupSettings.crawl_delay }}" min="0" max="10000" step="50" style="max-width:160px;">
-                <small class="form-text text-muted">Pause between each batch of requests in milliseconds. 500 = half second. 0 = no delay.</small>
-              </div>
-            </div>
-
-            <div class="form-group row">
-              <label class="form-control-label col-sm-3" for="crawl_timeout">Timeout per URL (seconds)</label>
-              <div class="col-sm-9">
-                <input type="number" class="form-control" id="crawl_timeout" name="crawl_timeout"
-                  value="{{ warmupSettings.crawl_timeout }}" min="5" max="120" style="max-width:120px;">
-                <small class="form-text text-muted">Maximum wait time per URL before skipping (5-120).</small>
-              </div>
-            </div>
-
-            <div class="form-group row">
-              <label class="form-control-label col-sm-3" for="load_limit">Server Load Limit</label>
-              <div class="col-sm-9">
-                <input type="number" class="form-control" id="load_limit" name="load_limit"
-                  value="{{ warmupSettings.load_limit }}" min="0" max="100" step="0.5" style="max-width:120px;">
-                <small class="form-text text-muted">Stop crawling when server 1-min load average exceeds this value. Recommended: 0.5 per CPU core. 0 = no limit.</small>
-              </div>
-            </div>
+            {% include '@Modules/litespeedcache/views/templates/admin/_custom_profile_fields.html.twig' with {
+              concurrent: warmupSettings.concurrent,
+              crawl_delay: warmupSettings.crawl_delay,
+              crawl_timeout: warmupSettings.crawl_timeout,
+              load_limit: warmupSettings.load_limit
+            } %}
           </div>
 
           <hr>
@@ -239,7 +210,7 @@
             <label class="form-control-label col-sm-3" for="mobile_useragent">Mobile User-Agent</label>
             <div class="col-sm-9">
               <input type="text" class="form-control" id="mobile_useragent" name="mobile_useragent"
-                value="{{ warmupSettings.mobile_useragent }}" style="max-width:500px;">
+                value="{{ warmupSettings.mobile_useragent|e('html_attr') }}" style="max-width:500px;">
               <small class="form-text text-muted">Must contain a mobile token (iPhone, Android, Mobile) for LiteSpeed to serve the mobile cache variant.</small>
             </div>
           </div>
@@ -309,10 +280,10 @@
             <tbody>
               {% for url in blacklist %}
               <tr>
-                <td><small>{{ url }}</small></td>
+                <td><small>{{ url|e }}</small></td>
                 <td style="width:80px;" class="text-right">
                   <form method="post" class="d-inline">
-                    <button type="submit" name="blacklist_remove" value="{{ url }}" class="btn btn-sm btn-outline-secondary" style="padding:2px 6px;">
+                    <button type="submit" name="blacklist_remove" value="{{ url|e('html_attr') }}" class="btn btn-sm btn-outline-secondary" style="padding:2px 6px;">
                       <i class="material-icons" style="font-size:14px;">close</i>
                     </button>
                   </form>
@@ -337,13 +308,13 @@
         <p class="text-muted mb-2">Schedule automatic cache warmup using a cron job:</p>
         <div class="input-group mb-3" style="max-width:900px;">
           <input type="text" class="form-control bg-dark text-light" style="font-family:monospace; font-size:13px;"
-            value="{{ cliCommand }}" readonly id="cron-command">
+            value="{{ cliCommand|e('html_attr') }}" readonly id="cron-command">
           <div class="input-group-append">
-            <button type="button" class="btn btn-outline-secondary js-copy-text" data-text="{{ cliCommand }}">Copy</button>
+            <button type="button" class="btn btn-outline-secondary js-copy-text" data-text="{{ cliCommand|e('html_attr') }}">Copy</button>
           </div>
         </div>
         <small class="form-text text-muted">
-          Add this command to your server's crontab. Example: <code>0 3 * * * {{ cliCommand }}</code> (runs daily at 3 AM).
+          Add this command to your server's crontab. Example: <code>0 3 * * * {{ cliCommand|e }}</code> (runs daily at 3 AM).
           The command uses your saved crawler settings (concurrency, delay, timeout, load limit).
         </small>
       </div>
@@ -358,10 +329,10 @@
   {{ parent() }}
   <script>
   (function() {
-    var urlsEndpoint     = '{{ urlsAction }}';
-    var crawlEndpoint    = '{{ crawlAction }}';
-    var saveEndpoint     = '{{ saveStateAction }}';
-    var loadCheckUrl     = '{{ loadCheckAction }}';
+    var urlsEndpoint     = '{{ urlsAction|e('js') }}';
+    var crawlEndpoint    = '{{ crawlAction|e('js') }}';
+    var saveEndpoint     = '{{ saveStateAction|e('js') }}';
+    var loadCheckUrl     = '{{ loadCheckAction|e('js') }}';
     var cdnEnabled       = {{ cdnEnabled ? 'true' : 'false' }};
     var blacklist        = {{ blacklist|json_encode|raw }};
     var warmupSettings   = {{ warmupSettings|json_encode|raw }};

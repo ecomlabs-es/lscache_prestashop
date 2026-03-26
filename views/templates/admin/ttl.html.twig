@@ -14,18 +14,18 @@
 
           {% for ttl in ttlFields %}
           <div class="form-group row">
-            <label class="form-control-label col-sm-3" for="{{ ttl.name }}">{{ ttl.label }}</label>
+            <label class="form-control-label col-sm-3" for="{{ ttl.name|e('html_attr') }}">{{ ttl.label|e }}</label>
             <div class="col-sm-9">
               <div class="d-flex align-items-center">
                 <div class="input-group" style="max-width:250px;">
-                  <input type="number" class="form-control js-ttl-input" id="{{ ttl.name }}" name="{{ ttl.name }}" value="{{ ttl.value }}" min="{{ ttl.min|default(0) }}" {{ ttl.max is defined ? 'max=' ~ ttl.max : '' }}>
+                  <input type="number" class="form-control js-ttl-input" id="{{ ttl.name|e('html_attr') }}" name="{{ ttl.name|e('html_attr') }}" value="{{ ttl.value|e('html_attr') }}" min="{{ ttl.min|default(0)|e('html_attr') }}" {{ ttl.max is defined ? 'max=' ~ ttl.max|e('html_attr') : '' }}>
                   <div class="input-group-append">
                     <span class="input-group-text">seconds</span>
                   </div>
                 </div>
                 <span class="ml-3 text-muted js-ttl-human" style="font-size:13px;"></span>
               </div>
-              <small class="form-text text-muted">{{ ttl.help }}{% if ttl.min is defined and ttl.min > 0 %} Min: {{ ttl.min }}s.{% endif %}{% if ttl.max is defined %} Max: {{ ttl.max }}s.{% endif %}</small>
+              <small class="form-text text-muted">{{ ttl.help|e }}{% if ttl.min is defined and ttl.min > 0 %} Min: {{ ttl.min|e }}s.{% endif %}{% if ttl.max is defined %} Max: {{ ttl.max|e }}s.{% endif %}</small>
             </div>
           </div>
           {% endfor %}

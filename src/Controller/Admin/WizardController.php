@@ -52,7 +52,25 @@ class WizardController extends FrameworkBundleAdminController
         $cdnCfg = CdnConfig::getAll();
         $warmupCfg = WarmupConfig::getAll();
 
-        $ttl = (int) ($allValues['ttl'] ?? 0);
+        $current = $this->buildSummary($allValues, $allValues, $objCfg, $cdnCfg, $warmupCfg);
+
+        // Load the snapshot saved when the wizard was last applied
+        $wizardRaw = \Configuration::getGlobalValue('LITESPEED_WIZARD_SNAPSHOT');
+        $wizard = $wizardRaw ? json_decode($wizardRaw, true) : [];
+        if (!is_array($wizard)) {
+            $wizard = [];
+        }
+
+        return $this->renderWithNavPills('@Modules/litespeedcache/views/templates/admin/wizard_status.html.twig', [
+            'current' => $current,
+            'wizard' => $wizard,
+            'rerunUrl' => $this->generateUrl('admin_litespeedcache_wizard', ['rerun' => 1]),
+        ], $request);
+    }
+
+    private function buildSummary(array $allValues, array $shopValues, array $objCfg, array $cdnCfg, array $warmupCfg): array
+    {
+        $ttl = (int) ($shopValues['ttl'] ?? $allValues['ttl'] ?? 0);
         if ($ttl >= 1209600) {
             $ttlLabel = 'Rarely (2 weeks)';
         } elseif ($ttl >= 604800) {
@@ -61,11 +79,11 @@ class WizardController extends FrameworkBundleAdminController
             $ttlLabel = 'Daily (1 day)';
         }
 
-        $summary = [
+        return [
             'Cache' => !empty($allValues['enable']) ? 'Enabled' : 'Disabled',
             'Guest mode' => !empty($allValues['guestmode']) ? 'Yes' : 'No',
             'Separate mobile cache' => !empty($allValues['diff_mobile']) ? 'Yes' : 'No',
-            'Customer group pricing' => ($allValues['diff_customergroup'] ?? 0) >= 2 ? 'Yes' : 'No',
+            'Customer group pricing' => ($shopValues['diff_customergroup'] ?? $allValues['diff_customergroup'] ?? 0) >= 2 ? 'Yes' : 'No',
             'Cache TTL' => $ttlLabel,
             'Flush all on cache clear' => !empty($allValues['flush_all']) ? 'Yes' : 'No',
             'Flush on order' => ($allValues['flush_prodcat'] ?? 0) == 3 ? 'Product + categories' : 'Custom',
@@ -73,13 +91,8 @@ class WizardController extends FrameworkBundleAdminController
             'Redis object cache' => !empty($objCfg[ObjConfig::OBJ_ENABLE]) ? 'Enabled (' . ($objCfg[ObjConfig::OBJ_HOST] ?? 'localhost') . ')' : 'Disabled',
             'Cloudflare CDN' => !empty($cdnCfg[CdnConfig::CF_ENABLE]) ? 'Enabled (' . ($cdnCfg[CdnConfig::CF_DOMAIN] ?? '') . ')' : 'Disabled',
             'Crawler profile' => ucfirst($warmupCfg[WarmupConfig::PROFILE] ?? 'medium'),
-            'Vary bypass' => $allValues['vary_bypass'] ?: 'None',
+            'Vary bypass' => ($allValues['vary_bypass'] ?? '') ?: 'None',
         ];
-
-        return $this->renderWithNavPills('@Modules/litespeedcache/views/templates/admin/wizard_status.html.twig', [
-            'summary' => $summary,
-            'rerunUrl' => $this->generateUrl('admin_litespeedcache_wizard', ['rerun' => 1]),
-        ], $request);
     }
 
     private function renderWizard(Request $request): Response
@@ -255,6 +268,7 @@ class WizardController extends FrameworkBundleAdminController
             'shared' => WarmupConfig::PROFILE_LOW,
             'vps' => WarmupConfig::PROFILE_MEDIUM,
             'dedicated' => WarmupConfig::PROFILE_HIGH,
+            'custom' => WarmupConfig::PROFILE_CUSTOM,
         ];
         $profile = $profileMap[$hosting] ?? WarmupConfig::PROFILE_MEDIUM;
         $warmupCfg = WarmupConfig::getAll();
@@ -265,18 +279,31 @@ class WizardController extends FrameworkBundleAdminController
             $warmupCfg[WarmupConfig::CRAWL_DELAY] = $profileSettings[WarmupConfig::CRAWL_DELAY];
             $warmupCfg[WarmupConfig::CRAWL_TIMEOUT] = $profileSettings[WarmupConfig::CRAWL_TIMEOUT];
             $warmupCfg[WarmupConfig::SERVER_LOAD_LIMIT] = $profileSettings[WarmupConfig::SERVER_LOAD_LIMIT];
+        } elseif ($profile === WarmupConfig::PROFILE_CUSTOM) {
+            $warmupCfg[WarmupConfig::CONCURRENT_REQUESTS] = max(1, min(10, (int) ($data['concurrent'] ?? 1)));
+            $warmupCfg[WarmupConfig::CRAWL_DELAY] = max(0, min(10000, (int) ($data['crawl_delay'] ?? 500)));
+            $warmupCfg[WarmupConfig::CRAWL_TIMEOUT] = max(5, min(120, (int) ($data['crawl_timeout'] ?? 30)));
+            $warmupCfg[WarmupConfig::SERVER_LOAD_LIMIT] = max(0, min(100, (float) ($data['load_limit'] ?? 1)));
         }
         WarmupConfig::saveAll($warmupCfg);
 
-        // Purge all cache
-        if (!headers_sent()) {
-            header('X-LiteSpeed-Purge: *');
-        }
-
         \Configuration::updateGlobalValue('LITESPEED_ACTIVE_PRESET', 'wizard');
+
+        // Save snapshot of wizard-applied values for comparison in status page
+        $snapshotAll = array_merge($all, $shop);
+        $snapshotObj = ObjConfig::getAll();
+        $snapshotCdn = CdnConfig::getAll();
+        \Configuration::updateGlobalValue('LITESPEED_WIZARD_SNAPSHOT', json_encode(
+            $this->buildSummary($snapshotAll, $snapshotAll, $snapshotObj, $snapshotCdn, $warmupCfg)
+        ));
+
         \PrestaShopLogger::addLog('Wizard configuration applied', 1, null, 'LiteSpeedCache', 0, true);
 
-        return new JsonResponse(['success' => true, 'message' => 'Configuration applied successfully. All cached pages have been purged.']);
+        // Purge all cache via the Response object (never call header() directly)
+        $response = new JsonResponse(['success' => true, 'message' => 'Configuration applied successfully. All cached pages have been purged.']);
+        $response->headers->set('X-LiteSpeed-Purge', '*');
+
+        return $response;
     }
 
     private function createBackup(string $label): void

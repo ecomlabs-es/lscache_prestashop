@@ -38,7 +38,7 @@
     return d.innerHTML;
   }
   function item(label, valueHtml) {
-    return '<li class="list-group-item"><span class="text-muted">' + label + '</span><span class="text-monospace">' + valueHtml + '</span></li>';
+    return '<li class="list-group-item"><span class="dbg-label">' + label + '</span><span class="text-monospace">' + valueHtml + '</span></li>';
   }
   function badge(text, cls) {
     return '<span class="badge ' + cls + '">' + esc(text) + '</span>';
@@ -52,7 +52,7 @@
   }
   function secEnd() { return '</ul></div>'; }
   function msBadge(v) {
-    if (!v || v <= 0) return '<span class="text-muted">-</span>';
+    if (!v || v <= 0) return '<span class="dbg-label">-</span>';
     var cls = v < 200 ? 'badge-success' : v < 500 ? 'badge-warning' : 'badge-danger';
     return badge(Math.round(v) + ' MS', cls);
   }
@@ -71,7 +71,7 @@
     return (s / 86400).toFixed(1) + 'd';
   }
   function logBadge(bytes) {
-    if (bytes === null) return '<span class="text-muted">-</span>';
+    if (bytes === null) return '<span class="dbg-label">-</span>';
     var cls = bytes > 52428800 ? 'badge-danger' : bytes > 10485760 ? 'badge-warning' : 'badge-success';
     return badge(fmtBytes(bytes), cls);
   }
@@ -202,7 +202,7 @@
         var tags = v.split(','); fv = '';
         for (var j = 0; j < tags.length; j++) fv += '<span class="badge badge-tag">' + tags[j].trim() + '</span>';
       } else if (key.indexOf('vary') > -1) {
-        o += '<li class="list-group-item" style="display:block;padding:6px 14px"><div class="text-muted" style="margin-bottom:4px">' + name + '</div><div style="color:#fff;font-size:11px">' + fmtVary(v) + '</div></li>';
+        o += '<li class="list-group-item" style="display:block;padding:6px 14px"><div class="dbg-label" style="margin-bottom:4px">' + name + '</div><div style="color:#fff;font-size:11px">' + fmtVary(v) + '</div></li>';
         continue;
       } else {
         fv = '<span style="word-break:break-all">' + esc(v) + '</span>';

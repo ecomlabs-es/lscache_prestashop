@@ -345,7 +345,9 @@ class CacheConfig
 
     public function isDebug($requiredLevel = 0)
     {
-        $this->get(self::CFG_DEBUG);
+        if ($this->all === null) {
+            $this->init();
+        }
 
         return ($this->isDebug < $requiredLevel) ? 0 : $this->isDebug;
     }
@@ -354,11 +356,12 @@ class CacheConfig
     {
         self::migrateAdvancedConfig();
 
-        $this->all = json_decode(\Configuration::getGlobalValue(self::ENTRY_ALL), true);
-        if (!$this->all) {
+        $decoded = json_decode(\Configuration::getGlobalValue(self::ENTRY_ALL), true);
+        if (!is_array($decoded)) {
             LSLog::log('Config not exist yet or decode err', LSLog::LEVEL_FORCE);
-            $this->all = $this->getDefaultConfData(self::ENTRY_ALL);
+            $decoded = $this->getDefaultConfData(self::ENTRY_ALL);
         }
+        $this->all = $decoded;
 
         if ($this->all[self::CFG_DEBUG]) {
             $ips = $this->getArray(self::CFG_DEBUG_IPS);
@@ -367,17 +370,18 @@ class CacheConfig
             }
         }
 
-        $this->shop = json_decode(\Configuration::get(self::ENTRY_SHOP), true);
-        if (!$this->shop) {
-            $this->shop = $this->getDefaultConfData(self::ENTRY_SHOP);
+        $decodedShop = json_decode(\Configuration::get(self::ENTRY_SHOP), true);
+        if (!is_array($decodedShop)) {
+            $decodedShop = $this->getDefaultConfData(self::ENTRY_SHOP);
         }
+        $this->shop = $decodedShop;
 
         $this->addDefaultPurgeControllers();
 
         $this->custMod = \Configuration::get(self::ENTRY_MODULE);
         $this->esiModConf = ['mods' => [], 'purge_events' => []];
         $custdata = json_decode($this->custMod, true);
-        if ($custdata) {
+        if (is_array($custdata)) {
             foreach ($custdata as $name => $sdata) {
                 $esiconf = new EsiConf($name, EsiConf::TYPE_CUSTOMIZED, $sdata);
                 $this->registerEsiModule($esiconf);

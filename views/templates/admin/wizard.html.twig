@@ -14,7 +14,7 @@
             <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-1 wizard-step-circle {{ loop.first ? 'bg-primary text-white' : 'bg-light text-muted' }}" style="width:36px; height:36px; font-weight:700; font-size:14px; border:2px solid {{ loop.first ? '#25b9d7' : '#dee2e6' }}; transition: all 0.2s;">
               {{ loop.index }}
             </div>
-            <div style="font-size:12px; font-weight:600;" class="{{ loop.first ? 'text-primary' : 'text-muted' }}">{{ label }}</div>
+            <div style="font-size:12px; font-weight:600;" class="{{ loop.first ? 'text-primary' : 'text-muted' }}">{{ label|e }}</div>
           </div>
           {% if not loop.last %}
           <div class="flex-fill" style="height:2px; background:#dee2e6; margin:0 4px; align-self:center; margin-bottom:18px;"></div>
@@ -36,8 +36,8 @@
           <div class="mb-4 p-3 rounded" style="background:#f0f7ff; border:1px solid #d0e3f7;">
             <strong style="font-size:13px;">Detected store settings:</strong>
             <div class="mt-2">
-              <span class="badge badge-info mr-1">{{ detected.languages }} language{{ detected.languages != 1 ? 's' : '' }}</span>
-              <span class="badge badge-info mr-1">{{ detected.currencies }} currenc{{ detected.currencies != 1 ? 'ies' : 'y' }}</span>
+              <span class="badge badge-info mr-1">{{ detected.languages|e }} language{{ detected.languages != 1 ? 's' : '' }}</span>
+              <span class="badge badge-info mr-1">{{ detected.currencies|e }} currenc{{ detected.currencies != 1 ? 'ies' : 'y' }}</span>
               {% if detected.multistore %}
                 <span class="badge badge-warning mr-1">Multistore active</span>
               {% endif %}
@@ -49,8 +49,8 @@
 
           {# Hosting type #}
           <div class="form-group row">
-            <label class="form-control-label col-sm-4">Hosting type</label>
-            <div class="col-sm-8">
+            <label class="form-control-label col-sm-3">Hosting type</label>
+            <div class="col-sm-9">
               <div class="d-flex flex-wrap wizard-radio" style="gap:8px;">
                 <label class="btn btn-primary" style="min-width:120px; cursor:pointer;">
                   <input type="radio" name="hosting" value="shared" checked style="display:none;">
@@ -67,17 +67,33 @@
                   <div style="font-weight:600;">Dedicated</div>
                   <small style="font-size:11px; opacity:0.8;">Full resources</small>
                 </label>
+                <label class="btn btn-outline-secondary" style="min-width:120px; cursor:pointer;">
+                  <input type="radio" name="hosting" value="custom" style="display:none;">
+                  <div style="font-weight:600;">Custom</div>
+                  <small style="font-size:11px; opacity:0.8;">Manual config</small>
+                </label>
               </div>
               <small class="form-text text-muted">Determines the crawler speed profile for cache warmup.</small>
             </div>
           </div>
 
+          {# Custom crawl fields (shown when Custom hosting is selected) #}
+          <div id="wiz-custom-fields" style="display:none;">
+            {% include '@Modules/litespeedcache/views/templates/admin/_custom_profile_fields.html.twig' with {
+              idPrefix: 'wiz_',
+              concurrent: 1,
+              crawl_delay: 500,
+              crawl_timeout: 30,
+              load_limit: 1
+            } %}
+          </div>
+
           {# Separate mobile theme #}
           <div class="form-group row">
-            <label class="form-control-label col-sm-4">Separate mobile theme?</label>
-            <div class="col-sm-8">
+            <label class="form-control-label col-sm-3">Separate mobile theme?</label>
+            <div class="col-sm-9">
               <div class="custom-control custom-switch">
-                <input type="checkbox" class="custom-control-input" id="wiz_diff_mobile" name="diff_mobile" value="1">
+                <input type="checkbox" class="custom-control-input" id="wiz_diff_mobile" name="diff_mobile" value="1" checked>
                 <label class="custom-control-label" for="wiz_diff_mobile">Yes, my store uses a different theme for mobile</label>
               </div>
               <small class="form-text text-muted">Enable if your store shows different content on mobile devices.</small>
@@ -86,8 +102,8 @@
 
           {# Different prices per customer group #}
           <div class="form-group row">
-            <label class="form-control-label col-sm-4">Different prices per customer group?</label>
-            <div class="col-sm-8">
+            <label class="form-control-label col-sm-3">Different prices per customer group?</label>
+            <div class="col-sm-9">
               <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="wiz_diff_customergroup" name="diff_customergroup" value="1" checked>
                 <label class="custom-control-label" for="wiz_diff_customergroup">Yes, different groups see different prices</label>
@@ -98,8 +114,8 @@
 
           {# Catalog update frequency #}
           <div class="form-group row">
-            <label class="form-control-label col-sm-4">How often do you update the catalog?</label>
-            <div class="col-sm-8">
+            <label class="form-control-label col-sm-3">How often do you update the catalog?</label>
+            <div class="col-sm-9">
               <div class="d-flex flex-wrap wizard-radio" style="gap:8px;">
                 <label class="btn btn-primary" style="min-width:120px; cursor:pointer;">
                   <input type="radio" name="catalog_frequency" value="daily" checked style="display:none;">
@@ -137,8 +153,8 @@
 
           {# Flush all on cache clear #}
           <div class="form-group row">
-            <label class="form-control-label col-sm-4">Flush All on Cache Clear</label>
-            <div class="col-sm-8">
+            <label class="form-control-label col-sm-3">Flush All on Cache Clear</label>
+            <div class="col-sm-9">
               <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="wiz_flush_all" name="flush_all" value="1" checked>
                 <label class="custom-control-label" for="wiz_flush_all">Flush entire cache when PrestaShop clears its cache</label>
@@ -149,8 +165,8 @@
 
           {# Flush on order placed #}
           <div class="form-group row">
-            <label class="form-control-label col-sm-4">Flush on Order Placed</label>
-            <div class="col-sm-8">
+            <label class="form-control-label col-sm-3">Flush on Order Placed</label>
+            <div class="col-sm-9">
               <select class="form-control" id="wiz_flush_prodcat" name="flush_prodcat" style="max-width:400px;">
                 <option value="0">Do not purge</option>
                 <option value="1">Purge product page only</option>
@@ -163,8 +179,8 @@
 
           {# Flush home on order #}
           <div class="form-group row">
-            <label class="form-control-label col-sm-4">Flush Home on Order</label>
-            <div class="col-sm-8">
+            <label class="form-control-label col-sm-3">Flush Home on Order</label>
+            <div class="col-sm-9">
               <select class="form-control" id="wiz_flush_home" name="flush_home" style="max-width:400px;">
                 <option value="0">Do not flush home page</option>
                 <option value="1">Flush on any order</option>
@@ -188,12 +204,12 @@
 
           {% if detected.redisAvailable and detected.redisConnectable %}
             <div class="p-3 rounded mb-4" style="background:#e8f5e9; border:1px solid #c8e6c9;">
-              <strong>Redis detected</strong> at <code>{{ detected.redisHost }}:{{ detected.redisPort }}</code>
+              <strong>Redis detected</strong> at <code>{{ detected.redisHost|e }}:{{ detected.redisPort|e }}</code>
             </div>
 
             <div class="form-group row">
-              <label class="form-control-label col-sm-4">Enable Redis Object Cache</label>
-              <div class="col-sm-8">
+              <label class="form-control-label col-sm-3">Enable Redis Object Cache</label>
+              <div class="col-sm-9">
                 <div class="custom-control custom-switch">
                   <input type="checkbox" class="custom-control-input" id="wiz_redis_enable" name="redis_enable" value="1" checked>
                   <label class="custom-control-label" for="wiz_redis_enable">Use Redis for object caching</label>
@@ -204,13 +220,13 @@
 
           {% elseif detected.redisAvailable and not detected.redisConnectable %}
             <div class="p-3 rounded mb-4" style="background:#fff3e0; border:1px solid #ffe0b2;">
-              <strong>Redis extension loaded</strong> but could not connect to <code>{{ detected.redisHost }}:{{ detected.redisPort }}</code>.
+              <strong>Redis extension loaded</strong> but could not connect to <code>{{ detected.redisHost|e }}:{{ detected.redisPort|e }}</code>.
               Configure the Redis connection in the Object Cache settings page before enabling.
             </div>
 
             <div class="form-group row">
-              <label class="form-control-label col-sm-4">Enable Redis Object Cache</label>
-              <div class="col-sm-8">
+              <label class="form-control-label col-sm-3">Enable Redis Object Cache</label>
+              <div class="col-sm-9">
                 <div class="custom-control custom-switch">
                   <input type="checkbox" class="custom-control-input" id="wiz_redis_enable" name="redis_enable" value="1" disabled>
                   <label class="custom-control-label" for="wiz_redis_enable">Not available (connection failed)</label>
@@ -238,8 +254,8 @@
         <div class="card-body">
 
           <div class="form-group row">
-            <label class="form-control-label col-sm-4">Do you use Cloudflare?</label>
-            <div class="col-sm-8">
+            <label class="form-control-label col-sm-3">Do you use Cloudflare?</label>
+            <div class="col-sm-9">
               <div class="custom-control custom-switch">
                 <input type="checkbox" class="custom-control-input" id="wiz_cf_enable" name="cf_enable" value="1"
                   {{ cdnCfg.cf_enable ? 'checked' : '' }}>
@@ -251,28 +267,28 @@
 
           <div id="cf-fields" style="{{ cdnCfg.cf_enable ? '' : 'display:none;' }}">
             <div class="form-group row">
-              <label class="form-control-label col-sm-4" for="wiz_cf_email">Cloudflare Email</label>
-              <div class="col-sm-8">
+              <label class="form-control-label col-sm-3" for="wiz_cf_email">Cloudflare Email</label>
+              <div class="col-sm-9">
                 <input type="email" class="form-control" id="wiz_cf_email" name="cf_email"
-                  value="{{ cdnCfg.cf_email }}" placeholder="your@email.com" style="max-width:500px;">
+                  value="{{ cdnCfg.cf_email|e('html_attr') }}" placeholder="your@email.com" style="max-width:500px;">
                 <small class="form-text text-muted">The email address associated with your Cloudflare account.</small>
               </div>
             </div>
 
             <div class="form-group row">
-              <label class="form-control-label col-sm-4" for="wiz_cf_api_key">Cloudflare API Key</label>
-              <div class="col-sm-8">
+              <label class="form-control-label col-sm-3" for="wiz_cf_api_key">Cloudflare API Key</label>
+              <div class="col-sm-9">
                 <input type="text" class="form-control" id="wiz_cf_api_key" name="cf_api_key"
-                  value="{{ cdnCfg.cf_key }}" placeholder="Enter your Global API Key" style="max-width:500px;">
+                  value="{{ cdnCfg.cf_key|e('html_attr') }}" placeholder="Enter your Global API Key" style="max-width:500px;">
                 <small class="form-text text-muted">Found at <a href="https://dash.cloudflare.com/profile/api-tokens" target="_blank" rel="noopener">Cloudflare Profile → API Tokens → Global API Key</a>.</small>
               </div>
             </div>
 
             <div class="form-group row">
-              <label class="form-control-label col-sm-4" for="wiz_cf_domain">Domain</label>
-              <div class="col-sm-8">
+              <label class="form-control-label col-sm-3" for="wiz_cf_domain">Domain</label>
+              <div class="col-sm-9">
                 <input type="text" class="form-control" id="wiz_cf_domain" name="cf_domain"
-                  value="{{ cdnCfg.cf_domain ?: shopDomain }}" style="max-width:500px;" readonly>
+                  value="{{ (cdnCfg.cf_domain ?: shopDomain)|e('html_attr') }}" style="max-width:500px;" readonly>
                 <small class="form-text text-muted">Auto-detected from your store configuration.</small>
               </div>
             </div>
@@ -331,7 +347,7 @@ Next
   {{ parent() }}
   <script>
   (function() {
-    var applyUrl = '{{ applyUrl }}';
+    var applyUrl = '{{ applyUrl|e('js') }}';
     var currentStep = 1;
     var totalSteps = 5;
 
@@ -401,6 +417,17 @@ Next
       });
     }
 
+    // Custom hosting fields toggle
+    var wizCustomFields = document.getElementById('wiz-custom-fields');
+    var hostingRadios = document.querySelectorAll('input[name="hosting"]');
+    hostingRadios.forEach(function(radio) {
+      radio.addEventListener('change', function() {
+        if (wizCustomFields) {
+          wizCustomFields.style.display = this.value === 'custom' ? '' : 'none';
+        }
+      });
+    });
+
     // CF fields toggle
     var cfToggle = document.getElementById('wiz_cf_enable');
     var cfFields = document.getElementById('cf-fields');
@@ -415,8 +442,9 @@ Next
       var checkedFreq = document.querySelector('input[name="catalog_frequency"]:checked');
       var redisEl = document.getElementById('wiz_redis_enable');
 
-      return {
-        hosting: checkedHosting ? checkedHosting.value : 'vps',
+      var hostingVal = checkedHosting ? checkedHosting.value : 'vps';
+      var result = {
+        hosting: hostingVal,
         diff_mobile: document.getElementById('wiz_diff_mobile').checked ? 1 : 0,
         diff_customergroup: document.getElementById('wiz_diff_customergroup').checked ? 1 : 0,
         catalog_frequency: checkedFreq ? checkedFreq.value : 'weekly',
@@ -424,15 +452,24 @@ Next
         flush_prodcat: parseInt(document.getElementById('wiz_flush_prodcat').value),
         flush_home: parseInt(document.getElementById('wiz_flush_home').value),
         redis_enable: (redisEl && !redisEl.disabled && redisEl.checked) ? 1 : 0,
-        redis_host: '{{ detected.redisHost }}',
+        redis_host: '{{ detected.redisHost|e('js') }}',
         cf_enable: cfToggle && cfToggle.checked ? 1 : 0,
         cf_email: document.getElementById('wiz_cf_email') ? document.getElementById('wiz_cf_email').value : '',
         cf_api_key: document.getElementById('wiz_cf_api_key') ? document.getElementById('wiz_cf_api_key').value : '',
         cf_domain: document.getElementById('wiz_cf_domain') ? document.getElementById('wiz_cf_domain').value : ''
       };
+
+      if (hostingVal === 'custom') {
+        result.concurrent = parseInt(document.getElementById('wiz_concurrent').value) || 1;
+        result.crawl_delay = parseInt(document.getElementById('wiz_crawl_delay').value) || 500;
+        result.crawl_timeout = parseInt(document.getElementById('wiz_crawl_timeout').value) || 30;
+        result.load_limit = parseFloat(document.getElementById('wiz_load_limit').value) || 1;
+      }
+
+      return result;
     }
 
-    var hostingLabels = { shared: 'Shared', vps: 'VPS', dedicated: 'Dedicated' };
+    var hostingLabels = { shared: 'Shared', vps: 'VPS', dedicated: 'Dedicated', custom: 'Custom' };
     var frequencyLabels = { daily: 'Daily (TTL: 1 day)', weekly: 'Weekly (TTL: 1 week)', rarely: 'Rarely (TTL: 2 weeks)' };
     var flushProdcatLabels = {
       0: 'Do not purge',
@@ -450,7 +487,7 @@ Next
       var data = getFormData();
       var rows = [
         ['Hosting type', hostingLabels[data.hosting] || data.hosting],
-        ['Crawler profile', data.hosting === 'shared' ? 'Low' : (data.hosting === 'dedicated' ? 'High' : 'Medium')],
+        ['Crawler profile', data.hosting === 'shared' ? 'Low' : (data.hosting === 'dedicated' ? 'High' : (data.hosting === 'custom' ? 'Custom' : 'Medium'))],
         ['Separate mobile theme', data.diff_mobile ? 'Yes' : 'No'],
         ['Different prices per group', data.diff_customergroup ? 'Yes' : 'No'],
         ['Catalog update frequency', frequencyLabels[data.catalog_frequency] || data.catalog_frequency],

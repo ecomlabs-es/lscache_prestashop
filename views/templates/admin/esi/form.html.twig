@@ -11,10 +11,10 @@
         {% else %}View ESI Block
         {% endif %}
       </h2>
-      <a href="{{ backUrl }}" class="btn btn-outline-secondary">Back</a>
+      <a href="{{ backUrl|e('html_attr') }}" class="btn btn-outline-secondary">Back</a>
     </div>
 
-    <form method="post" action="{{ formAction }}" id="litespeedcache-esi-form">
+    <form method="post" action="{{ formAction|e('html_attr') }}" id="litespeedcache-esi-form">
       <div class="card mb-3">
         <div class="card-header">
           <h3 class="card-header-title">ESI Block Configuration</h3>
@@ -31,15 +31,15 @@
                 {% if mode != 'add' %}disabled{% endif %}>
                 <option value="">-- Select a module --</option>
                 {% for option in moduleOptions %}
-                <option value="{{ option.id }}"
+                <option value="{{ option.id|e('html_attr') }}"
                   {% if values.id == option.id %}selected{% endif %}>
-                  {{ option.name }}
+                  {{ option.name|e }}
                 </option>
                 {% endfor %}
               </select>
               {% if mode != 'add' %}
               {# Keep the value when select is disabled #}
-              <input type="hidden" name="id" value="{{ values.id|default('') }}">
+              <input type="hidden" name="id" value="{{ values.id|default('')|e('html_attr') }}">
               {% endif %}
               <small class="form-text text-muted">
                 Select a front-end widget module only.
@@ -99,7 +99,7 @@
             <div class="col-sm-9">
               <div class="input-group">
                 <input type="text" class="form-control" id="esi_ttl" name="ttl"
-                  value="{{ values.ttl|default('') }}"
+                  value="{{ values.ttl|default('')|e('html_attr') }}"
                   {% if readonly %}readonly{% endif %}>
                 <div class="input-group-append">
                   <span class="input-group-text">seconds</span>
@@ -118,7 +118,7 @@
             </label>
             <div class="col-sm-9">
               <input type="text" class="form-control" id="esi_tag" name="tag"
-                value="{{ values.tag|default('') }}"
+                value="{{ values.tag|default('')|e('html_attr') }}"
                 {% if readonly %}readonly{% endif %}>
               <small class="form-text text-muted">
                 One tag per module. Leave blank to use the module name as the tag.
@@ -134,7 +134,7 @@
             <div class="col-sm-9">
               <textarea class="form-control" id="esi_events" name="events"
                 rows="3"
-                {% if readonly %}readonly{% endif %}>{{ values.events|default('') }}</textarea>
+                {% if readonly %}readonly{% endif %}>{{ values.events|default('')|e }}</textarea>
               <small class="form-text text-muted">
                 Comma-delimited list of events that trigger a purge.
                 There is no need to add login or logout events.
@@ -150,7 +150,7 @@
             <div class="col-sm-9">
               <textarea class="form-control" id="esi_ctrl" name="ctrl"
                 rows="3"
-                {% if readonly %}readonly{% endif %}>{{ values.ctrl|default('') }}</textarea>
+                {% if readonly %}readonly{% endif %}>{{ values.ctrl|default('')|e }}</textarea>
               <small class="form-text text-muted">
                 Comma-delimited controller class names. Append <code>?param</code> for a conditional purge.
               </small>
@@ -165,7 +165,7 @@
             <div class="col-sm-9">
               <textarea class="form-control" id="esi_methods" name="methods"
                 rows="3"
-                {% if readonly %}readonly{% endif %}>{{ values.methods|default('') }}</textarea>
+                {% if readonly %}readonly{% endif %}>{{ values.methods|default('')|e }}</textarea>
               <small class="form-text text-muted">
                 Comma-delimited methods. Prefix with <code>!</code> to exclude.
                 Leave blank to disable CallHook injection.
@@ -181,7 +181,7 @@
             <div class="col-sm-9">
               <textarea class="form-control" id="esi_render" name="render"
                 rows="3"
-                {% if readonly %}readonly{% endif %}>{{ values.render|default('') }}</textarea>
+                {% if readonly %}readonly{% endif %}>{{ values.render|default('')|e }}</textarea>
               <small class="form-text text-muted">
                 Comma-delimited hooks. Use <code>!</code> prefix to exclude, <code>*</code> for all.
                 Leave blank to disable renderWidget injection.
@@ -197,7 +197,7 @@
             <div class="col-sm-9">
               <textarea class="form-control" id="esi_argument" name="argument"
                 rows="3"
-                {% if readonly %}readonly{% endif %}>{{ values.argument|default('') }}</textarea>
+                {% if readonly %}readonly{% endif %}>{{ values.argument|default('')|e }}</textarea>
               <small class="form-text text-muted">
                 Comma-delimited parameters used by Hooked Methods or Widgets.
                 Example: <code>product.id_product, smarty.product.id</code>
@@ -277,7 +277,7 @@
         </div>{# /card-body #}
 
         <div class="card-footer d-flex justify-content-end gap-2">
-          <a href="{{ backUrl }}" class="btn btn-outline-secondary mr-2">Back</a>
+          <a href="{{ backUrl|e('html_attr') }}" class="btn btn-outline-secondary mr-2">Back</a>
           {% if not readonly %}
           <button type="submit" name="submitConfig" class="btn btn-primary">Save</button>
           {% endif %}

@@ -19,7 +19,7 @@
           <div class="form-group row">
             <label class="form-control-label col-sm-3" for="login_cookie">Login Cookie Name</label>
             <div class="col-sm-9">
-              <input type="text" class="form-control" id="login_cookie" name="login_cookie" value="{{ config.login_cookie }}" style="max-width:400px;">
+              <input type="text" class="form-control" id="login_cookie" name="login_cookie" value="{{ config.login_cookie|e('html_attr') }}" style="max-width:400px;">
               <small class="form-text text-muted">
                 The server uses this cookie to determine if a user is logged in. Default: <code>_lscache_vary</code>.<br>
                 Only alphanumeric characters and underscores. Case-sensitive. Must be unique across web applications on the same domain.<br>
@@ -39,7 +39,7 @@
           <div class="form-group row">
             <label class="form-control-label col-sm-3" for="vary_cookies">Third-Party Vary Cookies</label>
             <div class="col-sm-9">
-              <textarea class="form-control" id="vary_cookies" name="vary_cookies" rows="4" style="max-width:400px;">{{ config.vary_cookies }}</textarea>
+              <textarea class="form-control" id="vary_cookies" name="vary_cookies" rows="4" style="max-width:400px;">{{ config.vary_cookies|e }}</textarea>
               <small class="form-text text-muted">
                 List third-party cookies that should create separate cache variants. One per line.<br>
                 Only alphanumeric characters and underscores. Case-sensitive.<br>

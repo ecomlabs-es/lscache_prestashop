@@ -105,23 +105,100 @@ class CacheHookHandler
         }
     }
 
+    /**
+     * Fired during request (Smarty compile clear). Not safe for headers.
+     */
     public function onClearCompileCache(array $params): void
     {
+        // No-op: external purges handled in onClearSf2Cache (runs in PS shutdown).
+    }
+
+    /**
+     * Fired in PrestaShop's shutdown function AFTER Symfony cache is rebuilt.
+     * Respects module config: flush_all (LS+Redis), cf_purge (CDN).
+     */
+    public function onClearSf2Cache(array $params): void
+    {
+        // PS only warms prod cache — warm dev to prevent login redirect
+        $this->warmupDevCache();
+
         try {
-            if (!headers_sent()) {
-                $this->cache->purgeEntireStorage('hookActionClearCompileCache');
+            $flushAll = (bool) $this->config->get(Conf::CFG_FLUSH_ALL);
+            $cdnCfg = CdnConfig::getAll();
+            $cdnPurge = !empty($cdnCfg[CdnConfig::CF_ENABLE])
+                && !empty($cdnCfg[CdnConfig::CF_PURGE])
+                && !empty($cdnCfg[CdnConfig::CF_ZONE_ID])
+                && !empty($cdnCfg[CdnConfig::CF_KEY]);
+
+            // LiteSpeed cache purge
+            if ($flushAll && !headers_sent()) {
+                header('X-LiteSpeed-Purge: *');
+                CacheHelper::clearInternalCache();
             }
+
+            // Redis flush
+            if ($flushAll
+                && defined('_PS_CACHE_ENABLED_') && _PS_CACHE_ENABLED_
+                && defined('_PS_CACHING_SYSTEM_') && _PS_CACHING_SYSTEM_ === 'CacheRedis'
+            ) {
+                $cache = \Cache::getInstance();
+                if ($cache instanceof \LiteSpeed\Cache\Cache\CacheRedis) {
+                    $cache->flush();
+                }
+            }
+
+            // Cloudflare CDN purge
+            if ($cdnPurge) {
+                (new Cloudflare(
+                    $cdnCfg[CdnConfig::CF_KEY],
+                    $cdnCfg[CdnConfig::CF_EMAIL]
+                ))->purgeAll($cdnCfg[CdnConfig::CF_ZONE_ID]);
+            }
+
+            \PrestaShopLogger::addLog(
+                'External caches purged after PrestaShop cache clear'
+                . ($flushAll ? ' (LS+Redis)' : ' (skipped, flush_all off)')
+                . ($cdnPurge ? ' + CDN' : ''),
+                1, null, 'LiteSpeedCache', 0, true
+            );
         } catch (\Throwable $e) {
         }
     }
 
-    public function onClearSf2Cache(array $params): void
+    /**
+     * PS SymfonyCacheClearer only warms 'prod'. When running in 'dev',
+     * the missing cache causes AdminController::isLoggedBack() to fail
+     * and redirects to login. This warms 'dev' to prevent that.
+     */
+    private function warmupDevCache(): void
     {
+        if (!defined('_PS_MODE_DEV_') || !_PS_MODE_DEV_) {
+            return;
+        }
+
+        $devCacheDir = _PS_ROOT_DIR_ . '/var/cache/dev';
+        if (is_dir($devCacheDir) && count(scandir($devCacheDir)) > 2) {
+            return; // already warmed
+        }
+
         try {
-            if (!headers_sent()) {
-                $this->cache->purgeEntireStorage('hookActionClearSf2Cache');
+            global $kernel;
+            if (!$kernel) {
+                return;
             }
+
+            $application = new \Symfony\Bundle\FrameworkBundle\Console\Application($kernel);
+            $application->setAutoExit(false);
+            $application->doRun(
+                new \Symfony\Component\Console\Input\ArrayInput([
+                    'command' => 'cache:warmup',
+                    '--no-optional-warmers' => true,
+                    '--env' => 'dev',
+                ]),
+                new \Symfony\Component\Console\Output\NullOutput()
+            );
         } catch (\Throwable $e) {
+            // Warmup failure is not critical — dev cache rebuilds on next request
         }
     }
 
@@ -156,6 +233,7 @@ class CacheHookHandler
         \PrestaShopLogger::addLog('CDN purge — Cloudflare zone ' . $zoneId, 1, null, 'LiteSpeedCache', 0, true);
     }
 
+    /** @internal Reserved for future use — currently unused. */
     private function flushExternalCaches(): void
     {
         // Flush Redis object cache if active

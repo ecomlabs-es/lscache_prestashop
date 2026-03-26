@@ -31,6 +31,9 @@ class ToolsController extends FrameworkBundleAdminController
 {
     use NavPillsTrait;
 
+    /** @var bool Flag set by doPurge() when a full purge header is needed */
+    private $pendingPurgeAll = false;
+
     public function redirectAction(): Response
     {
         return $this->redirectToRoute('admin_litespeedcache_tools_purge');
@@ -43,12 +46,12 @@ class ToolsController extends FrameworkBundleAdminController
             if ($request->request->has('submitPurgeSelection')) {
                 $this->handlePurgeSelection($request);
 
-                return $this->redirectToRoute('admin_litespeedcache_tools_purge');
+                return $this->applyPurgeHeader($this->redirectToRoute('admin_litespeedcache_tools_purge'));
             }
             if ($request->request->has('submitPurgeId')) {
                 $this->handlePurgeIds($request);
 
-                return $this->redirectToRoute('admin_litespeedcache_tools_purge');
+                return $this->applyPurgeHeader($this->redirectToRoute('admin_litespeedcache_tools_purge'));
             }
             if ($request->request->has('submitSupport')) {
                 $this->handleSupportRequest($request);
@@ -86,14 +89,17 @@ class ToolsController extends FrameworkBundleAdminController
 
                 $wasBypassed = Conf::isBypassed();
                 Conf::setBypass($bypass);
-                if ($bypass && !$wasBypassed && !headers_sent()) {
-                    header('X-LiteSpeed-Purge: *');
-                }
+                $needsPurge = ($bypass && !$wasBypassed);
 
                 $this->addFlash('success', $this->trans('Debug settings saved.', 'Modules.Litespeedcache.Admin'));
                 \PrestaShopLogger::addLog('Debug settings updated. Level: ' . $level . ', Bypass: ' . ($bypass ? 'on' : 'off'), 1, null, 'LiteSpeedCache', 0, true);
 
-                return $this->redirectToRoute('admin_litespeedcache_tools_debug');
+                $response = $this->redirectToRoute('admin_litespeedcache_tools_debug');
+                if ($needsPurge) {
+                    $response->headers->set('X-LiteSpeed-Purge', '*');
+                }
+
+                return $response;
             }
         }
 
@@ -102,7 +108,7 @@ class ToolsController extends FrameworkBundleAdminController
         if ($purgeAction) {
             $this->handlePurgeAction($purgeAction);
 
-            return $this->redirectToRoute('admin_litespeedcache_tools_purge');
+            return $this->applyPurgeHeader($this->redirectToRoute('admin_litespeedcache_tools_purge'));
         }
 
         // Import/Export actions
@@ -989,8 +995,8 @@ class ToolsController extends FrameworkBundleAdminController
         $enabled = Conf::getInstance()->get(Conf::CFG_ENABLED);
         if ($enabled || $tags === '*' || $tags === 1) {
             \Hook::exec('litespeedCachePurge', ['from' => 'AdminLiteSpeedCacheTools', $key => $tags]);
-            if (!headers_sent() && ($tags === '*' || $tags === 1)) {
-                header('X-LiteSpeed-Purge: *');
+            if ($tags === '*' || $tags === 1) {
+                $this->pendingPurgeAll = true;
             }
 
             return true;
@@ -998,6 +1004,15 @@ class ToolsController extends FrameworkBundleAdminController
         $this->addFlash('warning', $this->trans('No action taken. This Module is not enabled.', 'Modules.Litespeedcache.Admin'));
 
         return false;
+    }
+
+    private function applyPurgeHeader(Response $response): Response
+    {
+        if ($this->pendingPurgeAll) {
+            $response->headers->set('X-LiteSpeed-Purge', '*');
+        }
+
+        return $response;
     }
 
     // ---- Log helpers ----------------------------------------------------------

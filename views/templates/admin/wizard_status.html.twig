@@ -7,7 +7,7 @@
     <div class="card mb-4">
       <div class="card-header d-flex align-items-center justify-content-between">
         <h3 class="card-header-title mb-0">Current Configuration</h3>
-        <a href="{{ rerunUrl }}" class="btn btn-outline-primary btn-sm">Run Wizard Again</a>
+        <a href="{{ rerunUrl|e('html_attr') }}" class="btn btn-outline-primary btn-sm">Run Wizard Again</a>
       </div>
       <div class="card-body">
 
@@ -18,13 +18,21 @@
 
         <table class="table table-hover">
           <thead>
-            <tr><th style="width:40%;">Setting</th><th>Value</th></tr>
+            <tr>
+              <th style="width:40%;">Setting</th>
+              <th>Value</th>
+            </tr>
           </thead>
           <tbody>
-            {% for label, value in summary %}
+            {% for label, value in current %}
             <tr>
-              <td style="font-weight:600;">{{ label }}</td>
-              <td>{{ value }}</td>
+              <td style="font-weight:600;">{{ label|e }}</td>
+              <td>
+                {{ value|e }}
+                {% if wizard[label] is defined and wizard[label] != value %}
+                  <span class="badge badge-warning">modified</span>
+                {% endif %}
+              </td>
             </tr>
             {% endfor %}
           </tbody>

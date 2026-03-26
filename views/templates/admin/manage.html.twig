@@ -16,7 +16,7 @@
         <p class="text-muted mb-3">
           This will flush the entire LiteSpeed Cache storage — all websites and all objects. Use only when needed.
         </p>
-        <a href="{{ purgeAllUrl }}" class="btn btn-danger"
+        <a href="{{ purgeAllUrl|e('html_attr') }}" class="btn btn-danger"
           onclick="return confirm('This will flush the entire LiteSpeed Cache storage. Are you sure?');">
           Flush Entire Cache Storage
         </a>
@@ -177,7 +177,7 @@
             <label class="form-control-label col-sm-3" for="purgeids">Enter the IDs</label>
             <div class="col-sm-9">
               <textarea class="form-control" id="purgeids" name="purgeids"
-                rows="4">{{ purgeSelectionValues.purgeids|default('') }}</textarea>
+                rows="4">{{ purgeSelectionValues.purgeids|default('')|e }}</textarea>
               <small class="form-text text-muted">
                 Multiple IDs: comma-delimited string (e.g. <code>12,34,56</code>).
               </small>

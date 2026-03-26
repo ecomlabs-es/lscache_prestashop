@@ -67,9 +67,9 @@
               <p class="mb-1">
                 PrestaShop cache layer:
                 {% if psEnabled and psDriver == 'CacheRedis' %}
-                  <span class="badge badge-success">Active — {{ psDriver }}</span>
+                  <span class="badge badge-success">Active — {{ psDriver|e }}</span>
                 {% elseif psEnabled %}
-                  <span class="badge badge-warning">Active — {{ psDriver }} (not Redis)</span>
+                  <span class="badge badge-warning">Active — {{ psDriver|e }} (not Redis)</span>
                 {% else %}
                   <span class="badge badge-secondary">Inactive</span>
                 {% endif %}
@@ -110,7 +110,7 @@
             <label class="form-control-label col-sm-3" for="obj_host">Host</label>
             <div class="col-sm-9">
               <input type="text" class="form-control" id="obj_host" name="obj_host"
-                value="{{ values.obj_host|default('localhost') }}">
+                value="{{ values.obj_host|default('localhost')|e('html_attr') }}">
               <small class="form-text text-muted">
                 The hostname or IP address of your Memcached/LSMCD/Redis server.<br>
                 If using a UNIX socket, Host should be the path: <code>/path/to/memcached.sock</code>
@@ -123,7 +123,7 @@
             <label class="form-control-label col-sm-3" for="obj_port">Port</label>
             <div class="col-sm-9">
               <input type="number" class="form-control" id="obj_port" name="obj_port"
-                value="{{ values.obj_port|default(6379) }}" min="0" max="65535">
+                value="{{ values.obj_port|default(6379)|e('html_attr') }}" min="0" max="65535">
               <small class="form-text text-muted">
                 Default Memcached port is <code>11211</code>. Default Redis port is <code>6379</code>.<br>
                 If using a UNIX socket, Port should be <code>0</code>.
@@ -137,7 +137,7 @@
             <div class="col-sm-9">
               <div class="input-group" style="max-width:200px;">
                 <input type="number" class="form-control" id="obj_ttl" name="obj_ttl"
-                  value="{{ values.obj_ttl|default(360) }}" min="1">
+                  value="{{ values.obj_ttl|default(360)|e('html_attr') }}" min="1">
                 <div class="input-group-append">
                   <span class="input-group-text">seconds</span>
                 </div>
@@ -151,7 +151,7 @@
             <label class="form-control-label col-sm-3" for="obj_username">Username</label>
             <div class="col-sm-9">
               <input type="text" class="form-control" id="obj_username" name="obj_username"
-                value="{{ values.obj_username|default('') }}"
+                value="{{ values.obj_username|default('')|e('html_attr') }}"
                 autocomplete="new-password">
               <small class="form-text text-muted">Only available when SASL is installed.</small>
             </div>
@@ -162,7 +162,7 @@
             <label class="form-control-label col-sm-3" for="obj_password">Password</label>
             <div class="col-sm-9">
               <input type="password" class="form-control" id="obj_password" name="obj_password"
-                value="{{ values.obj_password|default('') }}"
+                value="{{ values.obj_password|default('')|e('html_attr') }}"
                 autocomplete="new-password">
               <small class="form-text text-muted">The password used when connecting to the server.</small>
             </div>
@@ -173,7 +173,7 @@
             <label class="form-control-label col-sm-3" for="obj_redis_db">Redis database ID</label>
             <div class="col-sm-9">
               <input type="number" class="form-control" id="obj_redis_db" name="obj_redis_db"
-                value="{{ values.obj_redis_db|default(0) }}" min="0"
+                value="{{ values.obj_redis_db|default(0)|e('html_attr') }}" min="0"
                 style="max-width:100px;">
               <small class="form-text text-muted">Database index to use.</small>
             </div>
@@ -184,7 +184,7 @@
             <label class="form-control-label col-sm-3" for="obj_global_groups">Global groups</label>
             <div class="col-sm-9">
               <textarea class="form-control" id="obj_global_groups" name="obj_global_groups"
-                rows="8">{{ values.obj_global_groups|default('') }}</textarea>
+                rows="8">{{ values.obj_global_groups|default('')|e }}</textarea>
               <small class="form-text text-muted">
                 Cache groups shared across all shops in a multistore setup. One per line.
               </small>
@@ -196,7 +196,7 @@
             <label class="form-control-label col-sm-3" for="obj_nocache_groups">Non-cacheable groups</label>
             <div class="col-sm-9">
               <textarea class="form-control" id="obj_nocache_groups" name="obj_nocache_groups"
-                rows="5">{{ values.obj_nocache_groups|default('') }}</textarea>
+                rows="5">{{ values.obj_nocache_groups|default('')|e }}</textarea>
               <small class="form-text text-muted">Groups that should not be cached. One per line.</small>
             </div>
           </div>

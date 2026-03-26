@@ -64,7 +64,7 @@ class DispatcherHookHandler
             return 'not active';
         }
 
-        if (!defined('_LITESPEED_CALLBACK_')) {
+        if (!defined('_LITESPEED_CALLBACK_') && !defined('_PS_ADMIN_DIR_')) {
             define('_LITESPEED_CALLBACK_', 1);
             ob_start('LiteSpeedCache::callbackOutputFilter');
         }

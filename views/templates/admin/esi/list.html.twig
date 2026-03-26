@@ -35,9 +35,9 @@
             {% set isEditable = row.id not in defaultIds %}
             <tr>
               <td>
-                <code>{{ row.id }}</code>
+                <code>{{ row.id|e }}</code>
               </td>
-              <td>{{ row.name }}</td>
+              <td>{{ row.name|e }}</td>
               <td>
                 {% if row.priv %}
                   <span class="badge badge-success">Private</span>
@@ -47,37 +47,37 @@
               </td>
               <td>
                 {% if row.ttl %}
-                  {{ row.ttl }} s
+                  {{ row.ttl|e }} s
                 {% else %}
                   <span class="text-muted">default</span>
                 {% endif %}
               </td>
               <td>
                 {% if row.tag %}
-                  <code>{{ row.tag }}</code>
+                  <code>{{ row.tag|e }}</code>
                 {% else %}
                   <span class="text-muted">&mdash;</span>
                 {% endif %}
               </td>
               <td>
                 {% if row.typeLabel == 'Customized' %}
-                  <span class="badge badge-primary">{{ row.typeLabel }}</span>
+                  <span class="badge badge-primary">{{ row.typeLabel|e }}</span>
                 {% else %}
-                  <span class="badge badge-warning">{{ row.typeLabel }}</span>
+                  <span class="badge badge-warning">{{ row.typeLabel|e }}</span>
                 {% endif %}
               </td>
               <td class="text-right">
                 {% if isEditable %}
-                  <a href="{{ editUrl|replace({'__ID__': row.id}) }}"
+                  <a href="{{ editUrl|replace({'__ID__': row.id})|e('html_attr') }}"
                     class="btn btn-sm btn-outline-primary">Edit</a>
                   <form method="post"
-                    action="{{ deleteUrl|replace({'__ID__': row.id}) }}"
+                    action="{{ deleteUrl|replace({'__ID__': row.id})|e('html_attr') }}"
                     style="display:inline-block;"
                     onsubmit="return confirm('Delete ESI block \'{{ row.id|escape('js') }}\'? This cannot be undone.');">
                     <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
                   </form>
                 {% else %}
-                  <a href="{{ viewUrl|replace({'__ID__': row.id}) }}"
+                  <a href="{{ viewUrl|replace({'__ID__': row.id})|e('html_attr') }}"
                     class="btn btn-sm btn-outline-secondary">View</a>
                 {% endif %}
               </td>

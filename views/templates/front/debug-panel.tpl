@@ -23,7 +23,8 @@
 #lsc-debug-panel .list-group{margin:0;padding:0;list-style:none;border-radius:0}
 #lsc-debug-panel .list-group-item{background:transparent;border:none;border-bottom:1px solid #363a41;padding:5px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;color:#bbcdd2;font-size:12px}
 #lsc-debug-panel .list-group-item:last-child{border-bottom:none}
-#lsc-debug-panel .list-group-item .text-muted{color:#6c868e!important;font-size:11px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+#lsc-debug-panel .list-group-item .dbg-label{color:#6c868e;font-size:11px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+#lsc-debug-panel .dbg-label{color:#6c868e}
 #lsc-debug-panel .list-group-item .text-monospace{font-family:SFMono-Regular,Menlo,Monaco,Consolas,monospace;color:#fff;font-size:12px;text-align:right;word-break:break-all}
 #lsc-debug-panel .badge{display:inline-block;padding:2px 10px;border-radius:10px;font-size:10px;font-weight:700;line-height:1.4;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;color:#fff}
 #lsc-debug-panel .badge-success{background:#70b580}
@@ -46,7 +47,7 @@
 <div id="lsc-debug-panel">
   <div class="dbg-header">
     <img src="{$lsc_logo_url|escape:'htmlall':'UTF-8'}" alt="LSC">
-    <span class="title">LiteSpeed Cache Status</span>
+    <span class="title">LiteSpeed Cache Debug Bar</span>
     <button class="dbg-close" onclick="window._lscToggleDebug()"><i class="material-icons" aria-hidden="true">keyboard_arrow_down</i></button>
   </div>
   <div class="dbg-body">

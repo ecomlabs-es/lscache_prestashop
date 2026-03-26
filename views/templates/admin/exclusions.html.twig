@@ -26,7 +26,7 @@
             </label>
             <div class="col-sm-9">
               <textarea class="form-control" id="nocache_urls" name="nocache_urls"
-                rows="6">{{ nocache_urls }}</textarea>
+                rows="6">{{ nocache_urls|e }}</textarea>
               <small class="form-text text-muted">
                 One per line. Start with <code>/</code> for exact/prefix match, or use a regex without slashes for pattern match.
                 Wildcards: <code>/path/*</code> matches everything under that prefix.
@@ -41,7 +41,7 @@
             </label>
             <div class="col-sm-9">
               <textarea class="form-control" id="nocache_vars" name="nocache_vars"
-                rows="4">{{ nocache_vars }}</textarea>
+                rows="4">{{ nocache_vars|e }}</textarea>
               <small class="form-text text-muted">
                 Query parameter names (one per line). Pages containing any of these parameters will not be cached.
               </small>
@@ -55,7 +55,7 @@
             </label>
             <div class="col-sm-9">
               <textarea class="form-control" id="exc_nocache_cats" name="exc_nocache_cats"
-                rows="4">{{ values.exc_nocache_cats }}</textarea>
+                rows="4">{{ values.exc_nocache_cats|e }}</textarea>
               <small class="form-text text-muted">
                 PrestaShop category IDs (one per line). Category pages and product pages within these categories will not be cached.
               </small>
@@ -69,7 +69,7 @@
             </label>
             <div class="col-sm-9">
               <textarea class="form-control" id="exc_nocache_cookies" name="exc_nocache_cookies"
-                rows="4">{{ values.exc_nocache_cookies }}</textarea>
+                rows="4">{{ values.exc_nocache_cookies|e }}</textarea>
               <small class="form-text text-muted">
                 Cookie names (one per line). Requests that have any of these cookies will not be cached.
               </small>
@@ -83,7 +83,7 @@
             </label>
             <div class="col-sm-9">
               <textarea class="form-control" id="exc_nocache_ua" name="exc_nocache_ua"
-                rows="4">{{ values.exc_nocache_ua }}</textarea>
+                rows="4">{{ values.exc_nocache_ua|e }}</textarea>
               <small class="form-text text-muted">
                 User agent strings (one per line, case-insensitive substring match). Requests from matching user agents will not be cached.
               </small>
@@ -100,11 +100,11 @@
               <div class="form-check">
                 <input class="form-check-input" type="checkbox"
                   name="exc_nocache_roles[]"
-                  id="excl_role_{{ group.id_group }}"
-                  value="{{ group.id_group }}"
+                  id="excl_role_{{ group.id_group|e('html_attr') }}"
+                  value="{{ group.id_group|e('html_attr') }}"
                   {% if group.id_group in noRoles %}checked{% endif %}>
-                <label class="form-check-label" for="excl_role_{{ group.id_group }}">
-                  {{ group.name }} <small class="text-muted">(ID: {{ group.id_group }})</small>
+                <label class="form-check-label" for="excl_role_{{ group.id_group|e('html_attr') }}">
+                  {{ group.name|e }} <small class="text-muted">(ID: {{ group.id_group|e }})</small>
                 </label>
               </div>
               {% endfor %}

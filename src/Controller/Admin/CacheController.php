@@ -52,6 +52,13 @@ class CacheController extends FrameworkBundleAdminController
         $suggestedVary = $this->detectVaryContexts();
 
         return $this->renderWithNavPills('@Modules/litespeedcache/views/templates/admin/cache.html.twig', [
+            'layoutHeaderToolbarBtn' => [
+                'flush_pages' => [
+                    'href' => $this->generateUrl('admin_litespeedcache_manage', ['purge_shops' => 1]),
+                    'desc' => 'Flush Pages',
+                    'icon' => 'delete',
+                ],
+            ],
             'values' => $currentValues,
             'disabled' => $disabled,
             'suggestedVary' => $suggestedVary,
@@ -106,7 +113,10 @@ class CacheController extends FrameworkBundleAdminController
         }
 
         if ($changed === 0) {
-            $this->addFlash('info', $this->trans('No changes detected.', $d));
+            $msg = $shopLevel === 1
+                ? $this->trans('No changes detected. Global settings can only be modified from "All shops" context.', $d)
+                : $this->trans('No changes detected.', $d);
+            $this->addFlash('info', $msg);
 
             return;
         }

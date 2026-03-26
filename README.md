@@ -49,6 +49,63 @@ The module includes a guided wizard that configures the cache based on your stor
 - Debug headers and logging
 - Compatible with PrestaShop 1.7.8, 8.x and 9.x
 
+
+## Screenshots
+
+### **Wizard**
+<table>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/8ee9572b-cbdf-445a-a3b4-225e7aa68f72" width="100%" /></td>
+    <td><img src="https://github.com/user-attachments/assets/202bb1a8-839f-4269-b237-1a7548ce7971" width="100%" /></td>
+    <td><img src="https://github.com/user-attachments/assets/36b48b70-d9ea-4050-b456-c16b1f898459" width="100%" /></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/ca6e3e15-0208-405e-a727-3e8d47a85846" width="100%" /></td>
+    <td><img src="https://github.com/user-attachments/assets/523b6c44-97e7-4a2d-b7e9-97550cf53970" width="100%" /></td>
+    <td></td>
+  </tr>
+</table>
+
+### **Cache Litespeed / Redis / CDN**
+
+<table>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/8dd6e977-a9ac-426d-9cb3-2b3dfcdbee7d" width="100%" /></td>
+    <td><img src="https://github.com/user-attachments/assets/680180c6-d185-4fad-83f2-b76ef79b15da" width="100%" /></td>
+    <td><img src="https://github.com/user-attachments/assets/af0dd748-05b1-4798-b90f-806e66d129bb" width="100%" /></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/030dd96a-4adc-4148-bcf8-b06d12701a4b" width="100%" /></td>
+    <td><img src="https://github.com/user-attachments/assets/841031ec-42d2-45c7-8e5a-ee8708659de6" width="100%" /></td>
+    <td><img src="https://github.com/user-attachments/assets/4babe7b7-202d-4c57-bec0-4d8db7af6e8d" width="100%" /></td>
+  </tr>
+</table>
+
+### **Warm up / Stats / Database optimizations**
+
+<table>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/d8e83aec-5d41-4fd0-9d3c-b1c992ed6d77" width="100%" /></td>
+    <td><img src="https://github.com/user-attachments/assets/8dd7f44d-7a4b-4fd3-b9bc-b1610cb19a84" width="100%" /></td>
+    <td><img src="https://github.com/user-attachments/assets/2ac0fcd6-f473-4321-aa40-371f90deeba0" width="100%" /></td>
+  </tr>
+</table>
+
+### **Tools**
+
+<table>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/90bd837f-4622-4b5c-8c12-463573f5fbbb" width="100%" /></td>
+    <td><img src="https://github.com/user-attachments/assets/5d23279c-4d09-41c9-819a-e6cfd10ebb8d" width="100%" /></td>
+    <td><img src="https://github.com/user-attachments/assets/dd4e8886-9eed-4230-9b78-873ae8846676" width="100%" /></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/7bda2756-a61e-40c4-a160-011b3c81960c" width="100%" /></td>
+    <td><img src="https://github.com/user-attachments/assets/41e9ca5c-587d-4acb-8d93-3548cb6a3aad" width="100%" /></td>
+    <td><img src="https://github.com/user-attachments/assets/7ee5821b-0dc3-4495-b814-1dcd1b29be65" width="100%" /></td>
+  </tr>
+</table>
+
 ## Architecture
 
 ```

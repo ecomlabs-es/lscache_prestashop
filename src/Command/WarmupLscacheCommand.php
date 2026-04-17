@@ -284,8 +284,8 @@ class WarmupLscacheCommand extends Command
 
     private function getDefaultCookies(string $url, int $timeout = 30): string
     {
-        $cookie = '_lscache_vary=' . uniqid('lscache');
-        $ch = $this->getCurlHandler($url, $cookie, true, 'lscache_runner', $timeout);
+        $ch = $this->getCurlHandler($url, '', true, 'lscache_runner', $timeout);
+        curl_setopt($ch, CURLOPT_NOBODY, true);
         $buffer = curl_exec($ch);
         unset($ch);
 

@@ -175,6 +175,11 @@ class WarmupController extends FrameworkBundleAdminController
 
     /**
      * AJAX: crawls a single URL and returns the result with cache headers.
+     *
+     * Single GET per URL, matching the official LiteSpeed cachecrawler.sh
+     * behaviour: the X-LiteSpeed-Cache header on the same response tells
+     * whether the request was served from cache (hit) or just populated
+     * it (miss). No second verification request is needed.
      */
     public function crawlAction(Request $request): JsonResponse
     {
@@ -212,52 +217,22 @@ class WarmupController extends FrameworkBundleAdminController
 
         $headers = substr($response, 0, $headerSize);
         $lscache = $this->extractHeader($headers, 'X-LiteSpeed-Cache');
+        $lscacheCC = $this->extractHeader($headers, 'X-LiteSpeed-Cache-Control');
         $cfCache = $this->extractHeader($headers, 'CF-Cache-Status');
         $crawlOk = in_array($httpCode, [200, 201]);
 
-        // Verify: second GET with only _lscache_vary cookie (guest mode).
-        // PrestaShop requires cookies, but LiteSpeed only caches public pages
-        // when the vary cookie indicates a guest visitor. Session cookies
-        // (PHPSESSID, PrestaShop-*) prevent cache serving.
+        // hit  → page was served from cache (already warm)
+        // miss → page was generated now and stored in cache (just warmed)
+        // Both count as "cached" for UI purposes. no-cache means LSCache
+        // refused to cache the response (private content, bypass, etc.).
         $cached = false;
-        if ($crawlOk) {
-            // Extract the _lscache_vary value from the first response
-            $varyCookie = '_lscache_vary=guest';
-            if (preg_match('/^Set-Cookie:\s*(_lscache_vary=[^;]+)/mi', $headers, $varyMatch)) {
-                $varyCookie = trim($varyMatch[1]);
-            }
-
-            $ch2 = curl_init();
-            curl_setopt($ch2, CURLOPT_HEADER, true);
-            curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch2, CURLOPT_SSL_VERIFYHOST, false);
-            curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch2, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt($ch2, CURLOPT_MAXREDIRS, 1);
-            curl_setopt($ch2, CURLOPT_ENCODING, '');
-            curl_setopt($ch2, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
-            curl_setopt($ch2, CURLOPT_URL, $url);
-            curl_setopt($ch2, CURLOPT_TIMEOUT, max(10, (int) ($timeout / 2)));
-            curl_setopt($ch2, CURLOPT_USERAGENT, $userAgent ?: 'lscache_runner');
-            // Only the vary cookie — no session cookies
-            curl_setopt($ch2, CURLOPT_COOKIE, $varyCookie);
-
-            $verifyResponse = curl_exec($ch2);
-            $verifyHeaderSize = curl_getinfo($ch2, CURLINFO_HEADER_SIZE);
-            unset($ch2);
-
-            $verifyHeaders = substr($verifyResponse, 0, $verifyHeaderSize);
-            $verifyLscache = $this->extractHeader($verifyHeaders, 'X-LiteSpeed-Cache');
-            $verifyCfCache = $this->extractHeader($verifyHeaders, 'CF-Cache-Status');
-
-            if (stripos($verifyLscache, 'hit') !== false) {
+        if ($crawlOk && stripos($lscacheCC, 'no-cache') === false) {
+            if (stripos($lscache, 'hit') !== false || stripos($lscache, 'miss') !== false) {
                 $cached = true;
-                $lscache = $verifyLscache;
             }
-            if (stripos($verifyCfCache, 'HIT') !== false) {
-                $cached = true;
-                $cfCache = $verifyCfCache;
-            }
+        }
+        if (stripos($cfCache, 'HIT') !== false) {
+            $cached = true;
         }
 
         return new JsonResponse([
@@ -412,11 +387,17 @@ class WarmupController extends FrameworkBundleAdminController
         return $result ?: '';
     }
 
+    /**
+     * Probe the site to capture Set-Cookie headers PrestaShop hands out
+     * (language, currency, etc.). These feed the optional "with cookies"
+     * crawl phase — equivalent to the `-c` flag in the official
+     * LiteSpeed cachecrawler.sh. Returns an empty string if the site
+     * sets no cookies, in which case that phase is skipped.
+     */
     private function getDefaultCookies(string $url): string
     {
-        $cookie = '_lscache_vary=' . uniqid('lscache');
-
         $ch = curl_init();
+        curl_setopt($ch, CURLOPT_NOBODY, true);
         curl_setopt($ch, CURLOPT_HEADER, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
@@ -428,7 +409,6 @@ class WarmupController extends FrameworkBundleAdminController
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_TIMEOUT, 20);
         curl_setopt($ch, CURLOPT_USERAGENT, 'lscache_runner');
-        curl_setopt($ch, CURLOPT_COOKIE, $cookie);
         $buffer = curl_exec($ch);
         unset($ch);
 

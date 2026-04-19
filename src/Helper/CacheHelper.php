@@ -112,6 +112,45 @@ class CacheHelper
         }
     }
 
+    /**
+     * Filesystem purge of the LSWS public cache storage.
+     *
+     * Fallback for contexts where `header('X-LiteSpeed-Purge: *')` cannot
+     * be emitted (e.g. the `actionClearSf2Cache` hook runs after the admin
+     * response has been flushed, so headers are already sent). Deleting
+     * the cache files directly bypasses the HTTP layer entirely.
+     *
+     * LSWS stores each cache entry as a pair of files under its configured
+     * `storagePath` (default: `{docroot}/.lscache/`). Removing these files
+     * is equivalent to a purge — LSWS treats subsequent requests as MISS.
+     */
+    public static function purgeLswsStorage(): int
+    {
+        $dir = _PS_ROOT_DIR_ . '/.lscache';
+        if (!is_dir($dir)) {
+            return 0;
+        }
+
+        $count = 0;
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST
+        );
+        foreach ($iterator as $entry) {
+            if ($entry->isFile()) {
+                if (@unlink($entry->getPathname())) {
+                    ++$count;
+                }
+            }
+        }
+
+        if (_LITESPEED_DEBUG_ >= LSLog::LEVEL_PURGE_EVENT) {
+            LSLog::log(__FUNCTION__ . " deleted=$count files from $dir", LSLog::LEVEL_PURGE_EVENT);
+        }
+
+        return $count;
+    }
+
     public static function genEsiElements(EsiItem $item): void
     {
         if (!isset(self::$internal['esi_base_url'])) {

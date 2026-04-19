@@ -188,7 +188,7 @@ class ToolsController extends FrameworkBundleAdminController
                     'perPage' => $perPage,
                     'totalPages' => max(1, (int) ceil($this->countEvents() / $perPage)),
                     'accessLog' => $this->getAccessLog(200),
-                    'clearEventsUrl' => $this->generateUrl('admin_litespeedcache_tools', ['clear_events' => 1]),
+                    'clearEventsUrl' => $this->generateUrl('admin_litespeedcache_tools_logs', ['clear_events' => 1]),
                 ];
                 break;
 

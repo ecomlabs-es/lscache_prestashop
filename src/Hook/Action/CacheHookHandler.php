@@ -131,18 +131,9 @@ class CacheHookHandler
                 && !empty($cdnCfg[CdnConfig::CF_KEY]);
 
             // LiteSpeed cache purge
-            if ($flushAll) {
-                if (!headers_sent()) {
-                    header('X-LiteSpeed-Purge: *');
-                }
+            if ($flushAll && !headers_sent()) {
+                header('X-LiteSpeed-Purge: *');
                 CacheHelper::clearInternalCache();
-
-                // actionClearSf2Cache typically fires after the admin
-                // response body has been flushed, so the header above is
-                // a no-op. Fall back to a filesystem purge of LSWS's
-                // cache storage — equivalent effect, works regardless of
-                // response state.
-                CacheHelper::purgeLswsStorage();
             }
 
             // Redis flush

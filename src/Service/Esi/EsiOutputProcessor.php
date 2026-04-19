@@ -43,6 +43,8 @@ class EsiOutputProcessor
      */
     public function processBuffer(string $buffer): string
     {
+        $bufferInLen = strlen($buffer);
+
         if (CacheState::isFrontController()) {
             \LiteSpeedCache::setVaryCookie();
         }
@@ -67,10 +69,45 @@ class EsiOutputProcessor
             $buffer = $this->markerManager->replaceMarkers($buffer);
         }
 
+        $bufferOutLen = strlen($buffer);
+
         if ($code === 200 && CacheState::isCacheable() && $buffer === '') {
             CacheState::markNotCacheable('empty buffer');
             LSLog::log(
                 'setNotCacheable - empty buffer on ' . ($_SERVER['REQUEST_URI'] ?? '?'),
+                LSLog::LEVEL_FORCE
+            );
+        }
+
+        // Forensic line for cacheable responses: records buffer sizes at entry
+        // and exit of the callback plus the response headers that most often
+        // interfere with caching. One line per cacheable request, unconditional
+        // (LEVEL_FORCE), so we can pinpoint where a body disappears when the
+        // cached entry ends up with 0 bytes.
+        if ($code === 200 && CacheState::isCacheable()) {
+            $sensitive = [];
+            foreach (headers_list() as $h) {
+                $lh = strtolower($h);
+                if (strpos($lh, 'cache-control:') === 0
+                    || strpos($lh, 'pragma:') === 0
+                    || strpos($lh, 'expires:') === 0
+                    || strpos($lh, 'content-length:') === 0
+                    || strpos($lh, 'location:') === 0
+                    || strpos($lh, 'set-cookie:') === 0
+                    || strpos($lh, 'x-litespeed-cache-control:') === 0) {
+                    $sensitive[] = $h;
+                }
+            }
+            LSLog::log(
+                sprintf(
+                    'processBuffer cacheable uri=%s bufIn=%d bufOut=%d code=%d state=[%s] hdrs=[%s]',
+                    $_SERVER['REQUEST_URI'] ?? '?',
+                    $bufferInLen,
+                    $bufferOutLen,
+                    $code,
+                    CacheState::debugInfo(),
+                    implode(' | ', $sensitive)
+                ),
                 LSLog::LEVEL_FORCE
             );
         }

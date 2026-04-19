@@ -54,6 +54,11 @@ jobs:
       - name: Create GitHub Release
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
+          # Make the workflow idempotent when a tag is moved: drop any
+          # existing release for this tag first. Otherwise `gh release
+          # create` sees the prior release and publishes the new assets
+          # as a draft instead of replacing it.
+          gh release delete "${GITHUB_REF_NAME}" --yes 2>/dev/null || true
           gh release create "${GITHUB_REF_NAME}" \
             litespeedcache.zip \
             --title "${VERSION}" \

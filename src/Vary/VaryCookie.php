@@ -68,13 +68,17 @@ class VaryCookie extends \CookieCore
             return true;
         }
         if ($this->status & self::BM_IS_GUEST) {
+            // First-visit default: no prior vary cookie and the new one matches
+            // the implicit guest state — nothing to write, no reload needed.
             if (($this->vd['cv']['ov'] === null)
                 && (($this->vd['vv']['nv'] === 'guest' && $this->vd['cv']['nv'] === null)
                     || ($this->vd['vv']['nv'] === 'guestm' && $this->vd['cv']['nv'] === 'mobile~1~'))) {
                 return false;
             }
-
-            return true;
+            // Otherwise fall through to the generic cookie comparison. The
+            // previous unconditional `return true` triggered an infinite
+            // reload-after loop for guests whose vary cookie is stable but
+            // non-null (e.g. dev/allow-listed IPs carrying `dev~1~`).
         }
 
         return $this->vd['cv']['ov'] !== $this->vd['cv']['nv'];

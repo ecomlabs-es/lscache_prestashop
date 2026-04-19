@@ -67,6 +67,10 @@ class DispatcherHookHandler
         if (!defined('_LITESPEED_CALLBACK_') && !defined('_PS_ADMIN_DIR_')) {
             define('_LITESPEED_CALLBACK_', 1);
             ob_start('LiteSpeedCache::callbackOutputFilter');
+            // Record the callback buffer level so the ESI controller can
+            // unwind only the nested buffers above it without destroying
+            // the cache-capture layer.
+            define('_LITESPEED_CALLBACK_LEVEL_', ob_get_level());
         }
 
         if ($controllerType === \DispatcherCore::FC_FRONT) {

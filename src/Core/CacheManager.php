@@ -592,6 +592,7 @@ class CacheManager
         if (!defined('_LITESPEED_CALLBACK_')) {
             define('_LITESPEED_CALLBACK_', 1);
             ob_start('LiteSpeedCache::callbackOutputFilter');
+            define('_LITESPEED_CALLBACK_LEVEL_', ob_get_level());
         }
 
         $res = 0;

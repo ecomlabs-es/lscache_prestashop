@@ -274,12 +274,23 @@ class LiteSpeedCacheEsiModuleFrontController extends ModuleFrontController
 
     private function output(string $content): void
     {
-        if (ob_get_level()) {
-            ob_clean();
+        // ESI sub-requests are render-one-block fragments; anything beyond
+        // what this controller emits is pollution — PS display hooks, third
+        // party modules (analytics, cookie banners, chat widgets), and the
+        // standard shutdown pipeline all echo into the parent buffer and
+        // LSWS would cache that bleed under the ESI URL, ballooning a
+        // "cuerpo vacío" env block to tens of kilobytes and gating every
+        // HIT on a full PHP bootstrap roundtrip.
+        //
+        // Unwind every buffer above the cache-capture callback (started in
+        // DispatcherHookHandler/CacheManager) to drop whatever leaked in
+        // before we got here, emit exactly the ESI content, then exit so
+        // no subsequent hook or shutdown handler can append more bytes.
+        $callbackLevel = defined('_LITESPEED_CALLBACK_LEVEL_') ? _LITESPEED_CALLBACK_LEVEL_ : 1;
+        while (ob_get_level() > $callbackLevel) {
+            ob_end_clean();
         }
         echo $content;
-        if (ob_get_level()) {
-            ob_end_flush();
-        }
+        exit;
     }
 }

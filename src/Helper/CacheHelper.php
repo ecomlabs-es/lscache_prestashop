@@ -121,13 +121,20 @@ class CacheHelper
      * the cache files directly bypasses the HTTP layer entirely.
      *
      * LSWS stores each cache entry as a pair of files under its configured
-     * `storagePath` (default: `{docroot}/.lscache/`). Removing these files
-     * is equivalent to a purge — LSWS treats subsequent requests as MISS.
+     * `storagePath`. Location varies by hosting:
+     *   - default: `{docroot}/.lscache/`
+     *   - common alternative: one level above docroot
+     *   - managed hosts: arbitrary absolute path
+     *
+     * Resolution order:
+     *   1. Explicit override in Configuration `LITESPEED_LSWS_STORAGE_PATH`.
+     *   2. First existing candidate from a list of conventional paths.
+     *   3. Give up and log the attempted paths so the operator can configure.
      */
     public static function purgeLswsStorage(): int
     {
-        $dir = _PS_ROOT_DIR_ . '/.lscache';
-        if (!is_dir($dir)) {
+        $dir = self::resolveLswsStoragePath();
+        if ($dir === null) {
             return 0;
         }
 
@@ -149,6 +156,40 @@ class CacheHelper
         }
 
         return $count;
+    }
+
+    /**
+     * Resolve the LSWS cache storage path via operator override or
+     * conventional candidates. Returns null if nothing usable is found
+     * (and logs the attempted paths at LEVEL_FORCE so the issue is
+     * visible even with debug off).
+     */
+    private static function resolveLswsStoragePath(): ?string
+    {
+        $override = (string) \Configuration::getGlobalValue('LITESPEED_LSWS_STORAGE_PATH');
+        if ($override !== '' && is_dir($override)) {
+            return rtrim($override, '/');
+        }
+
+        $candidates = [
+            _PS_ROOT_DIR_ . '/.lscache',
+            dirname(_PS_ROOT_DIR_) . '/.lscache',
+        ];
+        foreach ($candidates as $candidate) {
+            if (is_dir($candidate)) {
+                return $candidate;
+            }
+        }
+
+        LSLog::log(
+            'purgeLswsStorage could not locate LSWS storage directory. Tried: '
+            . ($override !== '' ? $override . ' (override, missing), ' : '')
+            . implode(', ', $candidates)
+            . '. Set LITESPEED_LSWS_STORAGE_PATH via Configuration to override.',
+            LSLog::LEVEL_FORCE
+        );
+
+        return null;
     }
 
     public static function genEsiElements(EsiItem $item): void

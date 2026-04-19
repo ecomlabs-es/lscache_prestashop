@@ -43,6 +43,19 @@ class EsiOutputProcessor
      */
     public function processBuffer(string $buffer): string
     {
+        // ESI sub-requests short-circuit via exit() in the front controller,
+        // but PS shutdown work (session close, kernel terminate) sometimes
+        // produces a second buffer flush cycle in the same request. That
+        // second invocation captures whatever got emitted during shutdown
+        // and would overwrite the already-delivered empty body with ~8 KB
+        // of noise. Guard with a static latch so only the first invocation
+        // emits content; later ones return an empty string.
+        static $alreadyEmitted = false;
+        if ($alreadyEmitted) {
+            return '';
+        }
+        $alreadyEmitted = true;
+
         $bufferInLen = strlen($buffer);
 
         if (CacheState::isFrontController()) {

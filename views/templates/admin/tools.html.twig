@@ -567,7 +567,10 @@
                   </td>
                   <td>
                     {% if release.status == 'current' %}
-                      <span class="text-muted">—</span>
+                      <form method="post" action="{{ updateActionUrl|e('html_attr') }}" class="d-inline">
+                        <input type="hidden" name="release_tag" value="{{ release.tag_name|e('html_attr') }}">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm" onclick="return confirm('Reinstall {{ release.tag_name|e('js') }}? The current module files will be replaced with a fresh copy from GitHub. A backup will be created automatically.');">Reinstall</button>
+                      </form>
                     {% elseif release.status == 'newer' %}
                       <form method="post" action="{{ updateActionUrl|e('html_attr') }}" class="d-inline">
                         <input type="hidden" name="release_tag" value="{{ release.tag_name|e('html_attr') }}">

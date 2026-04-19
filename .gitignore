@@ -6,3 +6,4 @@
 .phpunit.cache/
 .php-cs-fixer.cache
 composer.lock
+src/Cache/redis_parameters_autoloader.php

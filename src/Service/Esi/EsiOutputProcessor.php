@@ -67,6 +67,14 @@ class EsiOutputProcessor
             $buffer = $this->markerManager->replaceMarkers($buffer);
         }
 
+        if ($code === 200 && CacheState::isCacheable() && $buffer === '') {
+            CacheState::markNotCacheable('empty buffer');
+            LSLog::log(
+                'setNotCacheable - empty buffer on ' . ($_SERVER['REQUEST_URI'] ?? '?'),
+                LSLog::LEVEL_FORCE
+            );
+        }
+
         $this->cache->setCacheControlHeader();
 
         return $buffer;

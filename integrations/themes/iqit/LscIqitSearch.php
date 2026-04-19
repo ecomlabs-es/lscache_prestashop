@@ -25,10 +25,24 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-// You can comment out the lines if you do not use IQIT Modules (warehouse theme)
+use LiteSpeed\Cache\Esi\EsiModuleConfig as EsiConf;
 
-include __DIR__ . '/LscIqitCompare.php';
-include __DIR__ . '/LscIqitWishlist.php';
-include __DIR__ . '/LscIqitCookielaw.php';
-include __DIR__ . '/LscIqitPopup.php';
-include __DIR__ . '/LscIqitSearch.php';
+class LscIqitSearch extends LscIntegration
+{
+    public const NAME = 'iqitsearch';
+
+    protected function init()
+    {
+        $confData = [
+            EsiConf::FLD_PRIV => 0,
+            EsiConf::FLD_TAG => 'search',
+            EsiConf::FLD_ASVAR => 1,
+            EsiConf::FLD_RENDER_WIDGETS => '*',
+        ];
+        $this->esiConf = new EsiConf(self::NAME, EsiConf::TYPE_INTEGRATED, $confData);
+
+        return $this->registerEsiModule();
+    }
+}
+
+LscIqitSearch::register();

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <module>
     <name>litespeedcache</name>
-    <displayName><![CDATA[Plugin LiteSpeed Cache]]></displayName>
+    <displayName><![CDATA[LiteSpeed Cache Plugin]]></displayName>
     <version><![CDATA[2.1.2]]></version>
-    <description><![CDATA[Se integra con LiteSpeed Full Page Cache en LiteSpeed Server.]]></description>
+    <description><![CDATA[Integrates with LiteSpeed Full Page Cache on LiteSpeed Server.]]></description>
     <author><![CDATA[LiteSpeedTech]]></author>
     <tab><![CDATA[administration]]></tab>
     <is_configurable>1</is_configurable>

@@ -51,7 +51,7 @@ class WarmupLscacheCommand extends Command
         $sitemap = $input->getArgument('sitemap');
         $urls = $this->parseSitemap($sitemap, $output);
         if (empty($urls)) {
-            return Command::FAILURE;
+            return 1;
         }
 
         // Load blacklist
@@ -106,7 +106,7 @@ class WarmupLscacheCommand extends Command
 
         $output->writeln('<info>Done.</info>');
 
-        return Command::SUCCESS;
+        return 0;
     }
 
     private function crawlUrls(
@@ -284,8 +284,8 @@ class WarmupLscacheCommand extends Command
 
     private function getDefaultCookies(string $url, int $timeout = 30): string
     {
-        $ch = $this->getCurlHandler($url, '', true, 'lscache_runner', $timeout);
-        curl_setopt($ch, CURLOPT_NOBODY, true);
+        $cookie = '_lscache_vary=' . uniqid('lscache');
+        $ch = $this->getCurlHandler($url, $cookie, true, 'lscache_runner', $timeout);
         $buffer = curl_exec($ch);
         unset($ch);
 

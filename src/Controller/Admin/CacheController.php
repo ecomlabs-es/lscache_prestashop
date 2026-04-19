@@ -133,16 +133,13 @@ class CacheController extends FrameworkBundleAdminController
         if ($changed & ConfigValidator::HTACCESS) {
             $guest = ($currentValues['guestmode'] == 1);
             $mobile = $currentValues['diff_mobile'];
-            if (CacheHelper::htAccessUpdate($currentValues['enable'], $guest, $mobile)) {
+            $loginCookie = $currentValues['login_cookie'] ?? '_lscache_vary';
+            $varyCookies = $currentValues['vary_cookies'] ?? '';
+            if (CacheHelper::htAccessUpdate($currentValues['enable'], $guest, $mobile, $loginCookie, $varyCookies)) {
                 $this->addFlash('success', $this->trans('.htaccess file updated.', $d));
             } else {
                 $this->addFlash('warning', $this->trans('Failed to update .htaccess. Please update manually.', $d));
             }
-
-            // Vary cookie .htaccess update
-            $loginCookie = $currentValues['login_cookie'] ?? '_lscache_vary';
-            $varyCookies = $currentValues['vary_cookies'] ?? '';
-            CacheHelper::htAccessUpdateVaryCookies($loginCookie, $varyCookies);
         }
 
         // Purge if needed

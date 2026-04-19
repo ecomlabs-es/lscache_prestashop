@@ -637,7 +637,6 @@ class LiteSpeedCache extends Module
         PrestaShopLogger::addLog('LiteSpeed Cache module uninstalled', 2, null, 'LiteSpeedCache', 0, true);
         (new TabManager($this))->uninstall();
         CacheHelper::htAccessUpdate(false, false, false);
-        CacheHelper::htAccessUpdateVaryCookies('_lscache_vary', '');
         Configuration::deleteByName(Conf::ENTRY_ALL);
         Configuration::deleteByName(Conf::ENTRY_SHOP);
         Configuration::deleteByName(Conf::ENTRY_MODULE);

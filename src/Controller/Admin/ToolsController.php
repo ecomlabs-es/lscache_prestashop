@@ -762,11 +762,9 @@ class ToolsController extends FrameworkBundleAdminController
             CacheHelper::htAccessUpdate(
                 (bool) ($global[Conf::CFG_ENABLED] ?? false),
                 ($global[Conf::CFG_GUESTMODE] ?? 0) == 1,
-                (bool) ($global[Conf::CFG_DIFFMOBILE] ?? false)
-            );
-            CacheHelper::htAccessUpdateVaryCookies(
-                $global[Conf::CFG_LOGIN_COOKIE] ?? '_lscache_vary',
-                $global[Conf::CFG_VARY_COOKIES] ?? ''
+                (bool) ($global[Conf::CFG_DIFFMOBILE] ?? false),
+                (string) ($global[Conf::CFG_LOGIN_COOKIE] ?? '_lscache_vary'),
+                (string) ($global[Conf::CFG_VARY_COOKIES] ?? '')
             );
         }
 

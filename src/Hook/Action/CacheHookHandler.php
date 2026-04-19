@@ -207,7 +207,9 @@ class CacheHookHandler
         $enable = (bool) $this->config->get(Conf::CFG_ENABLED);
         $guest = ($this->config->get(Conf::CFG_GUESTMODE) == 1);
         $mobile = (bool) $this->config->get(Conf::CFG_DIFFMOBILE);
-        CacheHelper::htAccessUpdate($enable, $guest, $mobile);
+        $loginCookie = (string) $this->config->get(Conf::CFG_LOGIN_COOKIE);
+        $varyCookies = (string) $this->config->get(Conf::CFG_VARY_COOKIES);
+        CacheHelper::htAccessUpdate($enable, $guest, $mobile, $loginCookie, $varyCookies);
     }
 
     public function onWatermark(array $params): void

@@ -190,8 +190,25 @@ class CacheHelper
         return $contents;
     }
 
-    private static function genHtAccessContent(bool $guestMode, bool $mobileView): string
-    {
+    private static function genHtAccessContent(
+        bool $guestMode,
+        bool $mobileView,
+        string $loginCookie = '_lscache_vary',
+        string $varyCookies = ''
+    ): string {
+        $extraVaryRules = [];
+        if ($loginCookie !== '' && $loginCookie !== '_lscache_vary') {
+            $extraVaryRules[] = 'RewriteRule .* - [E="Cache-Vary:' . $loginCookie . '"]';
+        }
+        if ($varyCookies !== '') {
+            foreach (preg_split("/\r?\n/", $varyCookies, -1, PREG_SPLIT_NO_EMPTY) as $cookie) {
+                $cookie = trim($cookie);
+                if ($cookie !== '') {
+                    $extraVaryRules[] = 'RewriteRule .* - [E="Cache-Vary:' . $cookie . '"]';
+                }
+            }
+        }
+
         $ls = [];
         $ls[] = '### LITESPEED_CACHE_START - Do not remove this line, LSCache plugin will automatically update it';
         $ls[] = '# automatically genereated by LiteSpeedCache plugin: https://docs.litespeedtech.com/lscache/lscps/';
@@ -199,7 +216,7 @@ class CacheHelper
         $ls[] = 'CacheLookup on';
         $mobileUA = 'phone|iPhone|iPod|BlackBerry|Palm|Googlebot-Mobile|Mobile|mobile|mobi|Windows_Mobile|Safari_Mobile|Android|Opera_Mini';
 
-        if ($guestMode || $mobileView) {
+        if ($guestMode || $mobileView || !empty($extraVaryRules)) {
             $ls[] = 'RewriteEngine on';
         }
         if ($guestMode) {
@@ -219,6 +236,9 @@ class CacheHelper
             $ls[] = 'RewriteRule .* - [E=Cache-Control:vary=ismobile]';
             $ls[] = '### marker MOBILE end ###';
             $ls[] = '';
+        }
+        foreach ($extraVaryRules as $rule) {
+            $ls[] = $rule;
         }
         $ls[] = '</IfModule>';
         $ls[] = '### LITESPEED_CACHE_END';
@@ -245,57 +265,31 @@ class CacheHelper
         return false;
     }
 
+    /**
+     * Back-compat wrapper. Vary cookie rules now live inside the main
+     * LITESPEED_CACHE block via htAccessUpdate(). Reads the current cache
+     * config and delegates to htAccessUpdate() with full parameters.
+     */
     public static function htAccessUpdateVaryCookies(string $loginCookie, string $varyCookies): bool
     {
-        $htaccessPath = _PS_ROOT_DIR_ . '/.htaccess';
-        if (!is_file($htaccessPath) || !is_writable($htaccessPath)) {
-            return false;
-        }
+        $config = \LiteSpeed\Cache\Config\CacheConfig::getInstance();
 
-        $content = file_get_contents($htaccessPath);
-
-        // Remove existing LSCache vary cookie block
-        $content = preg_replace(
-            '/\n?# BEGIN LSCache Vary Cookie.*?# END LSCache Vary Cookie\n?/s',
-            '',
-            $content
+        return self::htAccessUpdate(
+            (bool) $config->get(\LiteSpeed\Cache\Config\CacheConfig::CFG_ENABLED),
+            ((int) $config->get(\LiteSpeed\Cache\Config\CacheConfig::CFG_GUESTMODE)) === 1,
+            (bool) $config->get(\LiteSpeed\Cache\Config\CacheConfig::CFG_DIFFMOBILE),
+            $loginCookie,
+            $varyCookies
         );
-
-        // Build new block
-        $block = "\n# BEGIN LSCache Vary Cookie\n";
-        $block .= '<IfModule LiteSpeed>' . "\n";
-        $block .= 'CacheLookup on' . "\n";
-
-        if ($loginCookie !== '_lscache_vary') {
-            $block .= 'RewriteRule .* - [E="Cache-Vary:' . $loginCookie . '"]' . "\n";
-        }
-
-        if (!empty($varyCookies)) {
-            $cookies = preg_split("/\r?\n/", $varyCookies, -1, PREG_SPLIT_NO_EMPTY);
-            foreach ($cookies as $cookie) {
-                $cookie = trim($cookie);
-                if ($cookie !== '') {
-                    $block .= 'RewriteRule .* - [E="Cache-Vary:' . $cookie . '"]' . "\n";
-                }
-            }
-        }
-
-        $block .= '</IfModule>' . "\n";
-        $block .= "# END LSCache Vary Cookie\n";
-
-        if (preg_match('/(<IfModule mod_rewrite\.c>)/i', $content, $m, PREG_OFFSET_CAPTURE)) {
-            $content = substr($content, 0, $m[0][1]) . $block . substr($content, $m[0][1]);
-        } else {
-            $content .= $block;
-        }
-
-        file_put_contents($htaccessPath, $content);
-
-        return true;
     }
 
-    public static function htAccessUpdate(bool $enableCache, bool $guestMode, bool $mobileView): bool
-    {
+    public static function htAccessUpdate(
+        bool $enableCache,
+        bool $guestMode,
+        bool $mobileView,
+        string $loginCookie = '_lscache_vary',
+        string $varyCookies = ''
+    ): bool {
         $path = _PS_ROOT_DIR_ . '/.htaccess';
         $oldlines = file($path);
         if ($oldlines === false) {
@@ -322,9 +316,17 @@ class CacheHelper
 
         $newcontent = '';
         if ($enableCache) {
-            $newcontent = self::genHtAccessContent($guestMode, $mobileView);
+            $newcontent = self::genHtAccessContent($guestMode, $mobileView, $loginCookie, $varyCookies);
         }
         $newcontent .= implode('', $newlines);
+
+        // Clean up legacy standalone "# BEGIN LSCache Vary Cookie" block from older
+        // versions. Vary cookies now live inside the main LITESPEED_CACHE block.
+        $newcontent = preg_replace(
+            '/\n?# BEGIN LSCache Vary Cookie.*?# END LSCache Vary Cookie\n?/s',
+            '',
+            $newcontent
+        );
 
         $res = file_put_contents($path, $newcontent);
         if ($res) {

@@ -71,14 +71,6 @@ class EsiOutputProcessor
 
         $bufferOutLen = strlen($buffer);
 
-        if ($code === 200 && CacheState::isCacheable() && $buffer === '') {
-            CacheState::markNotCacheable('empty buffer');
-            LSLog::log(
-                'setNotCacheable - empty buffer on ' . ($_SERVER['REQUEST_URI'] ?? '?'),
-                LSLog::LEVEL_FORCE
-            );
-        }
-
         // Forensic line for cacheable responses: records buffer sizes at entry
         // and exit of the callback plus the response headers that most often
         // interfere with caching. One line per cacheable request, unconditional

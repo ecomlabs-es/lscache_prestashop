@@ -27,6 +27,10 @@ class CacheHookHandler
     private CacheManager $cache;
     private Conf $config;
 
+    /** Idempotency flag: the PS cache clear flow fires several hooks in one
+     *  request. We only want to run the external purge once per request. */
+    private bool $externalPurgeDone = false;
+
     public function __construct(CacheManager $cache, Conf $config)
     {
         $this->cache = $cache;
@@ -106,21 +110,48 @@ class CacheHookHandler
     }
 
     /**
-     * Fired during request (Smarty compile clear). Not safe for headers.
+     * Fired inline from Tools::clearCompile() when PrestaShop clears its
+     * Smarty compile cache. This runs during the admin request, BEFORE
+     * the response is flushed, so `header('X-LiteSpeed-Purge: *')` is
+     * guaranteed to reach LSWS.
+     *
+     * The backoffice "Clear cache" button (PerformanceController::clearCacheAction)
+     * invokes CacheClearerChain which includes SmartyCacheClearer, which
+     * calls Tools::clearSmartyCache() and from there Tools::clearCompile().
+     * This hook is the reliable trigger for an LSWS purge in that flow.
      */
     public function onClearCompileCache(array $params): void
     {
-        // No-op: external purges handled in onClearSf2Cache (runs in PS shutdown).
+        $this->runExternalPurge();
     }
 
     /**
-     * Fired in PrestaShop's shutdown function AFTER Symfony cache is rebuilt.
-     * Respects module config: flush_all (LS+Redis), cf_purge (CDN).
+     * Fired inside SymfonyCacheClearer's register_shutdown_function, after
+     * the admin response has been flushed — headers_sent() is true here,
+     * so emitting `X-LiteSpeed-Purge: *` from this hook is a no-op.
+     *
+     * Kept as a safety net in case some flow fires only this hook
+     * (idempotency flag prevents double-execution when both fire).
      */
     public function onClearSf2Cache(array $params): void
     {
         // PS only warms prod cache — warm dev to prevent login redirect
         $this->warmupDevCache();
+
+        $this->runExternalPurge();
+    }
+
+    /**
+     * Run the external purge (LSWS + Redis + CDN). Idempotent per request:
+     * multiple hook firings in the same PS cache clear sequence result in
+     * a single purge.
+     */
+    private function runExternalPurge(): void
+    {
+        if ($this->externalPurgeDone) {
+            return;
+        }
+        $this->externalPurgeDone = true;
 
         try {
             $flushAll = (bool) $this->config->get(Conf::CFG_FLUSH_ALL);

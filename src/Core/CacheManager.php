@@ -894,6 +894,19 @@ class CacheManager
 
         $headers[] = self::LSHEADER_CACHE_CONTROL . ': ' . $cacheControlHeader;
 
+        // PHP's session_cache_limiter default ("nocache") injects
+        // Cache-Control: no-store, Pragma: no-cache, Expires: <past>.
+        // With LSWS `ignoreRespCacheCtrl 0` (the upstream default), these
+        // headers instruct LSWS to skip caching, producing 0-byte cached
+        // entries despite our X-Litespeed-Cache-Control: public directive.
+        // Strip them whenever we've decided the response is cacheable, so
+        // LSWS sees a consistent "yes, cache this" signal.
+        if (CacheState::isCacheable()) {
+            header_remove('Cache-Control');
+            header_remove('Pragma');
+            header_remove('Expires');
+        }
+
         foreach ($headers as $header) {
             header($header);
         }

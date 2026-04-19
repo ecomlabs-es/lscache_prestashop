@@ -290,6 +290,14 @@ class LiteSpeedCacheEsiModuleFrontController extends ModuleFrontController
         while (ob_get_level() > $callbackLevel) {
             ob_end_clean();
         }
+        // Also wipe whatever already landed in the cache-capture buffer
+        // itself (PS init/setMedia/initContent + early display hooks run
+        // before this controller's display() and their output ends up
+        // here). Without this, the callback still captures ~13 KB of
+        // pre-display pollution per env sub-request.
+        if (ob_get_level() >= $callbackLevel) {
+            ob_clean();
+        }
         echo $content;
         exit;
     }

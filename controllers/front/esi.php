@@ -42,6 +42,16 @@ class LiteSpeedCacheEsiModuleFrontController extends ModuleFrontController
         ];
     }
 
+    /**
+     * ESI sub-requests are dispatched by LSWS with specific URLs it expects
+     * to resolve. Any canonical redirect (triggered by third-party modules
+     * such as Fsadvancedurl overriding FrontController::canonicalRedirection)
+     * emits a 302, leaving the parent cached page with an unresolved fragment.
+     */
+    protected function canonicalRedirection($canonical_url = '')
+    {
+    }
+
     public function display()
     {
         // Vary cookie changed (login/register/logout)

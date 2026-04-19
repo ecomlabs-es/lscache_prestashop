@@ -146,13 +146,52 @@ class LiteSpeedCacheDebugModuleFrontController extends ModuleFrontController
 
         try {
             $ch = curl_init($url);
+
+            // Forward the visitor's context so LSWS resolves the same
+            // cache variant it would for their browser:
+            //   - Cookie header: vary cookie, PrestaShop-*, lgcookieslaw,
+            //     all customer state that affects vary keying.
+            //   - X-Forwarded-For / X-Real-IP: the real visitor IP, so
+            //     modules that check REMOTE_ADDR (allow_ips, debug_ips)
+            //     behave identically to the original request.
+            //   - User-Agent: the mobile vary rule in .htaccess keys off
+            //     this, so using the visitor's UA preserves the variant.
+            // Without these, the probe is effectively a cookieless
+            // loopback request and LSWS returns a different (or no)
+            // X-LiteSpeed-Cache header, producing UNKNOWN in the panel.
+            $reqHeaders = [];
+
+            $visitorIp = \Tools::getRemoteAddr();
+            if ($visitorIp !== '' && !in_array($visitorIp, ['127.0.0.1', '::1'], true)) {
+                $reqHeaders[] = 'X-Forwarded-For: ' . $visitorIp;
+                $reqHeaders[] = 'X-Real-IP: ' . $visitorIp;
+            }
+
+            if (!empty($_COOKIE) && is_array($_COOKIE)) {
+                $pairs = [];
+                foreach ($_COOKIE as $name => $value) {
+                    if (!is_string($name) || !is_string($value)) {
+                        continue;
+                    }
+                    $pairs[] = $name . '=' . $value;
+                }
+                if ($pairs) {
+                    $reqHeaders[] = 'Cookie: ' . implode('; ', $pairs);
+                }
+            }
+
+            $ua = !empty($_SERVER['HTTP_USER_AGENT'])
+                ? (string) $_SERVER['HTTP_USER_AGENT']
+                : 'LiteSpeedCache-DebugProbe';
+
             curl_setopt_array($ch, [
                 CURLOPT_RETURNTRANSFER => true,
                 CURLOPT_TIMEOUT => 5,
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_MAXREDIRS => 3,
                 CURLOPT_SSL_VERIFYPEER => false,
-                CURLOPT_USERAGENT => 'LiteSpeedCache-DebugProbe',
+                CURLOPT_USERAGENT => $ua,
+                CURLOPT_HTTPHEADER => $reqHeaders,
                 CURLOPT_HEADERFUNCTION => function ($ch, $header) use (&$headers) {
                     if (stripos($header, 'X-LiteSpeed') === 0 || stripos($header, 'X-LSCACHE') === 0) {
                         [$name, $value] = explode(':', $header, 2);

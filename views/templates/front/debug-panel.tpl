@@ -3,6 +3,11 @@
  * Shell loaded in footer, data populated via AJAX.
  *}
 
+{* Material Icons is loaded inline here (not by the parent theme) so the
+   font only costs bandwidth on pages that actually render this panel —
+   i.e. when the debug bar is active (CFG_DEBUG_HEADER on + IP allowed). *}
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" crossorigin="anonymous">
+
 {literal}
 <style>
 #lsc-debug-tab,#lsc-debug-panel,#lsc-debug-panel *,#lsc-debug-tab *{box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}

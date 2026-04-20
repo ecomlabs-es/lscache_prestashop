@@ -86,10 +86,15 @@ class EsiOutputProcessor
 
         // Forensic line for cacheable responses: records buffer sizes at entry
         // and exit of the callback plus the response headers that most often
-        // interfere with caching. One line per cacheable request, unconditional
-        // (LEVEL_FORCE), so we can pinpoint where a body disappears when the
-        // cached entry ends up with 0 bytes.
-        if ($code === 200 && CacheState::isCacheable()) {
+        // interfere with caching. Gated behind an active debug level because
+        // LEVEL_FORCE writes unconditionally (default $isDebug=0 still matches
+        // 0 >= 0), and this sits on the hot path — every cacheable response
+        // would otherwise append to var/logs/lscache.log via file_put_contents
+        // with no rotation, turning the logger into the bottleneck under
+        // load. Debug off (production default) skips it entirely; flipping
+        // debug on in the admin UI re-enables the diagnostic.
+        if (_LITESPEED_DEBUG_ >= LSLog::LEVEL_NOCACHE_REASON
+            && $code === 200 && CacheState::isCacheable()) {
             $sensitive = [];
             foreach (headers_list() as $h) {
                 $lh = strtolower($h);
